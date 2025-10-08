@@ -188,7 +188,7 @@ public class FleetService {
                 query.executeUpdate();
             }
         } else if(!isCreate && vehicleVO.getImage()==null){
-            String deleteImage = "delete from TMSNEW.CBLOB where CODBLB_0 = 'XX10CVEH' " +
+            String deleteImage = "delete from TMSMRCH.CBLOB where CODBLB_0 = 'XX10CVEH' " +
                     "and IDENT2_0 = 'IMG1' and IDENT1_0 = :ident1";
             Query query = entityManager.createNativeQuery(deleteImage);
             query.setParameter("ident1", vehicleVO.getCode());
@@ -890,7 +890,7 @@ public class FleetService {
 
     public String deleteVehicleByCodeyve(String codeyve) {
         vehicleRepository.deleteByCodeyve(codeyve);
-        String deleteImage = "delete from TMSNEW.CBLOB where CODBLB_0 = 'XX10CVEH' " +
+        String deleteImage = "delete from TMSMRCH.CBLOB where CODBLB_0 = 'XX10CVEH' " +
                 "and IDENT2_0 = 'IMG1' and IDENT1_0 = :ident1";
         Query query = entityManager.createNativeQuery(deleteImage);
         query.setParameter("ident1", codeyve);
@@ -984,7 +984,7 @@ public class FleetService {
                 query.executeUpdate();
             }
         }else if(!isCreate && trailerVO.getImage()==null){
-            String deleteImage = "delete from TMSNEW.CBLOB where CODBLB_0 = 'XX10CTRA' " +
+            String deleteImage = "delete from TMSMRCH.CBLOB where CODBLB_0 = 'XX10CTRA' " +
                     " and IDENT1_0 = :ident1";
             Query query = entityManager.createNativeQuery(deleteImage);
             query.setParameter("ident1", trailerVO.getTrailer());
@@ -1154,7 +1154,7 @@ public class FleetService {
 
     public String deleteTrailerByTrailerCode(String trailer) {
         trailerRepository.deleteByTrailer(trailer);
-        String deleteImage = "delete from TMSNEW.CBLOB where CODBLB_0 = 'XX10CTRA' " +
+        String deleteImage = "delete from TMSMRCH.CBLOB where CODBLB_0 = 'XX10CTRA' " +
                 " and IDENT1_0 = :ident1";
         Query query = entityManager.createNativeQuery(deleteImage);
         query.setParameter("ident1", trailer);
@@ -1232,7 +1232,7 @@ public class FleetService {
                 query.executeUpdate();
             }
         }else if(!isCreate && vehicleClassVO.getImage()==null){
-            String deleteImage = "delete from TMSNEW.CBLOB where CODBLB_0 = 'XX10CCLA' " +
+            String deleteImage = "delete from TMSMRCH.CBLOB where CODBLB_0 = 'XX10CCLA' " +
                     "and IDENT1_0 = :ident1";
             Query query = entityManager.createNativeQuery(deleteImage);
             query.setParameter("ident1", vehicleClassVO.getClassName());
@@ -1352,7 +1352,7 @@ public class FleetService {
 
     public String deleteVehicleClassByClass(String className) {
         vehicleClassRepository.deleteByClassName(className);
-        String deleteImage = "delete from TMSNEW.CBLOB where CODBLB_0 = 'XX10CCLA' " +
+        String deleteImage = "delete from TMSMRCH.CBLOB where CODBLB_0 = 'XX10CCLA' " +
                 " and IDENT1_0 = :ident1";
         Query query = entityManager.createNativeQuery(deleteImage);
         query.setParameter("ident1", className);
@@ -1488,7 +1488,7 @@ public class FleetService {
                 query.executeUpdate();
             }
         }else if(!isCreate && driverVO.getImage()==null){
-            String deleteImage = "delete from TMSNEW.CBLOB where CODBLB_0 = 'XX10CDR' " +
+            String deleteImage = "delete from TMSMRCH.CBLOB where CODBLB_0 = 'XX10CDR' " +
                     " and IDENT1_0 = :ident1";
             Query query = entityManager.createNativeQuery(deleteImage);
             query.setParameter("ident1", driverVO.getDriverId());
@@ -1683,13 +1683,13 @@ public class FleetService {
 
     public String deleteDriverById(String driverId) {
         driverRepository.deleteByDriverId(driverId);
-        String deleteImage = "delete from TMSNEW.CBLOB where CODBLB_0 = 'XX10CDR' " +
+        String deleteImage = "delete from TMSMRCH.CBLOB where CODBLB_0 = 'XX10CDR' " +
                 " and IDENT1_0 = :ident1";
         Query query = entityManager.createNativeQuery(deleteImage);
         query.setParameter("ident1", driverId);
         query.executeUpdate();
 
-        String deleteDocument = "delete from TMSNEW.XX10CDRIVERD where DRIVERID_0 = :driverId ";
+        String deleteDocument = "delete from TMSMRCH.XX10CDRIVERD where DRIVERID_0 = :driverId ";
         Query deleteDocumentQuery = entityManager.createNativeQuery(deleteDocument);
         deleteDocumentQuery.setParameter("driverId", driverId);
         deleteDocumentQuery.executeUpdate();
@@ -2309,10 +2309,10 @@ public class FleetService {
 
     private List<TrailerClass> getTrailerClassList(String code) {
         String vehClassQuery = "select a.XCLASS_0, c.XMAXCAPW_0, c.XMAXUNIT_0, x1.TEXTE_0 wuom, c.XMAXCAPV_0, c.XMAXVUNIT_0, x2.TEXTE_0 vwom, c.AXLNBR_0 \n" +
-                "from TMSNEW.XX10CXASSOC1 a \n" +
-                "join TMSNEW.XX10CCLASS c on c.CLASS_0= a.XCLASS_0\n" +
-                "join TMSNEW.ATEXTRA x1 on x1.IDENT1_0=c.XMAXUNIT_0\n" +
-                "join TMSNEW.ATEXTRA x2 on x2.IDENT1_0=c.XMAXVUNIT_0\n" +
+                "from TMSMRCH.XX10CXASSOC1 a \n" +
+                "join TMSMRCH.XX10CCLASS c on c.CLASS_0= a.XCLASS_0\n" +
+                "join TMSMRCH.ATEXTRA x1 on x1.IDENT1_0=c.XMAXUNIT_0\n" +
+                "join TMSMRCH.ATEXTRA x2 on x2.IDENT1_0=c.XMAXVUNIT_0\n" +
                 "where a.XTRAILER_0='"+code+"'\n" +
                 "and x1.LANGUE_0='ENG' and x1.ZONE_0='DES' and x1.CODFIC_0='TABUNIT'\n" +
                 "and x2.LANGUE_0='ENG' and x2.ZONE_0='DES' and x2.CODFIC_0='TABUNIT'";

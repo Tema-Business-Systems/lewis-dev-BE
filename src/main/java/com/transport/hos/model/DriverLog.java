@@ -13,7 +13,7 @@ import java.util.Date;
 @Getter
 @Setter
 @Entity
-@Table(name = "XX10CDRVLOGS", schema = "TMSNEW")
+@Table(name = "XX10CDRVLOGS", schema = "TMSMRCH")
 public class DriverLog {
 
     @Id

@@ -21,7 +21,7 @@ public interface VehicleTrackingRepository extends CrudRepository<VehLiveTrack, 
 
     public VehLiveTrack findByVehicle(String vehicle);
 
-    @Query(value="select * from TMSNEW.XTMSVEHTRACKING c where c.SITE = ?1 and (c.DATE between ?2 AND ?3)",nativeQuery = true)
+    @Query(value="select * from TMSMRCH.XTMSVEHTRACKING c where c.SITE = ?1 and (c.DATE between ?2 AND ?3)",nativeQuery = true)
     public List<VehLiveTrack> getVehBySiteAndDateRange(String site, String sdate, String edate);
 
 

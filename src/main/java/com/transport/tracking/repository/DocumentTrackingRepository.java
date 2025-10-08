@@ -18,7 +18,7 @@ public interface DocumentTrackingRepository extends CrudRepository<DocReportTrac
 
     List<DocReportTrack> findBySiteAndDocdate(String site, String date);
 
-    @Query(value="select * from TMSNEW.XTMSDOCREPORTS c where c.SITE = ?1 and (c.DOCDATE between ?2 AND ?3)",nativeQuery = true)
+    @Query(value="select * from TMSMRCH.XTMSDOCREPORTS c where c.SITE = ?1 and (c.DOCDATE between ?2 AND ?3)",nativeQuery = true)
     public List<DocReportTrack> getDocReportBySiteAndDateRange(String site, String sdate, String edate);
 
 

@@ -18,7 +18,7 @@ public interface DriverProRepository extends CrudRepository<DriverSchedule, BigD
 
     public List<DriverSchedule> findAll();
 
-    @Query(value="select * from TMSNEW.VW_DRIVER_HOS_RAW c where c.DRIVERID_0 IN (?1) and (c.ACTIVITY_DATE between ?2 AND ?3) ORDER BY c.ACTIVITY_DATE DESC",nativeQuery = true)
+    @Query(value="select * from TMSMRCH.VW_DRIVER_HOS_RAW c where c.DRIVERID_0 IN (?1) and (c.ACTIVITY_DATE between ?2 AND ?3) ORDER BY c.ACTIVITY_DATE DESC",nativeQuery = true)
     public List<DriverSchedule> findByDriverLogswithDateRange(String driverid, Date sdate, Date edate);
 
 

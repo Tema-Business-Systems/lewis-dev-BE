@@ -60,7 +60,7 @@ public class CommonRepository {
     }
 
     public List<DropdownData> getPrimaryLanguageList() {
-        String queryString = "select IDENT1_0, TEXTE_0 from TMSNEW.ATEXTRA where IDENT1_0 in (select LAN_0 from "+dbSchema+ ".TABLAN) \n" +
+        String queryString = "select IDENT1_0, TEXTE_0 from TMSMRCH.ATEXTRA where IDENT1_0 in (select LAN_0 from "+dbSchema+ ".TABLAN) \n" +
                 "and ZONE_0='INTDES' and LANGUE_0='ENG' order by IDENT1_0";
 
         Query query = entityManager.createNativeQuery(queryString);
@@ -148,7 +148,7 @@ public class CommonRepository {
 
 
     public List<DropdownData> getVehicleFuelUnitList() {
-        String queryString = "select IDENT1_0, TEXTE_0 FROM TMSNEW.ATEXTRA " +
+        String queryString = "select IDENT1_0, TEXTE_0 FROM TMSMRCH.ATEXTRA " +
                 "where CODFIC_0 = 'TABUNIT' and LANGUE_0='ENG' and ZONE_0='DES'\n";
 
         Query query = entityManager.createNativeQuery(queryString);

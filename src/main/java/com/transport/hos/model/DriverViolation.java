@@ -13,7 +13,7 @@ import java.util.Date;
 @Getter
 @Setter
 @Entity
-@Table(name = "XX10CDRVV", schema = "TMSNEW")
+@Table(name = "XX10CDRVV", schema = "TMSMRCH")
 public class DriverViolation {
 
     @Id

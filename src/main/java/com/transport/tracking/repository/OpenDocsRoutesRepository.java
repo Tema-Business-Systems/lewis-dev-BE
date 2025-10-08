@@ -17,7 +17,7 @@ public interface OpenDocsRoutesRepository extends CrudRepository<OpenDocsRoutes,
 
 
 
-    @Query(value="select * from TMSNEW.XTMSG2ADDDOCS c where c.SITE IN (?1) and (c.DOCDATE between ?2 AND ?3)",nativeQuery = true)
+    @Query(value="select * from TMSMRCH.XTMSG2ADDDOCS c where c.SITE IN (?1) and (c.DOCDATE between ?2 AND ?3)",nativeQuery = true)
     public List<OpenDocsRoutes> getOpenDocsRouteBySiteAndDocdateRange(List<String> site, Date sdate, Date edate);
 
 

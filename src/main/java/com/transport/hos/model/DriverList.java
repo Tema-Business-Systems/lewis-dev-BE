@@ -13,7 +13,7 @@ import java.util.Date;
 @Getter
 @Setter
 @Entity
-@Table(name = "vw_ListofDrivers", schema = "TMSNEW")
+@Table(name = "vw_ListofDrivers", schema = "TMSMRCH")
 public class DriverList {
 
 
