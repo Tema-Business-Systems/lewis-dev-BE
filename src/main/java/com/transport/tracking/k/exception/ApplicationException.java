@@ -10,8 +10,8 @@ public class ApplicationException extends RuntimeException {
     public String errorMessage;
 
     public ApplicationException(int statusCode, String errorMessage) {
-        this.statusCode = statusCode;
-        this.errorMessage = errorMessage;
+        statusCode = statusCode;
+        errorMessage = errorMessage;
     }
 
 }

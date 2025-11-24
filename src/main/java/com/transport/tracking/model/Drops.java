@@ -19,9 +19,18 @@ public class Drops {
 
       @Column(name= "TRAILER")
       private String trailer;
+	    @Column(name= "DLVFLG")
+      private String dlvflg;
+      @Column(name= "VEHCLASSLIST")
+      private String vehClassList;
+	   @Column(name= "ROUTECODE")
+      private String routeCode;
+      @Column(name= "ROUTECODEBGCLR")
+      private String routeBgColor;
+      @Column(name= "ROUTECODEDESC")
+      private String routeCodeDesc;
       @Column(name= "CARRIER")
       private String carrier;
-
       @Column(name= "PRELISTCODE")
       private String prelistCode;
       @Column(name= "CARRCOLOR")
@@ -31,12 +40,6 @@ public class Drops {
       @Id
       @Column(name= "DOCNUM")
       private String docnum;
-	   @Column(name= "ROUTECODE")
-      private String routeCode;
-      @Column(name= "ROUTECODEBGCLR")
-      private String routeBgColor;
-      @Column(name= "ROUTECODEDESC")
-      private String routeCodeDesc;
       @Column(name= "ADRESCODE")
       private String adrescode;
       @Column(name= "ADRESNAME")
@@ -49,10 +52,16 @@ public class Drops {
       private Date docdate;
       @Column(name= "DLVYSTATUS")
       private String dlvystatus;
+      @Column(name= "STATUS")
+      private String status;
       @Column(name= "DOCTYPE")
       private String doctype;
       @Column(name= "MOVTYPE")
       private String movtype;
+      @Column(name= "FROMTIME")
+      private String fromTime;
+      @Column(name= "TOTIME")
+      private String toTime;
       @Column(name= "BPCODE")
       private String bpcode;
       @Column(name= "CPYCODE")
@@ -117,10 +126,7 @@ public class Drops {
       private String vehicleplate;
       @Column(name= "TRIPNO")
       private String tripno;
-      @Column(name= "FROMTIME")
-      private String fromTime;
-      @Column(name= "TOTIME")
-      private String toTime;
+
       @Column(name= "DLVMODE")
       private String dlvmode;
       @Column(name= "VRCODE")
@@ -147,10 +153,6 @@ public class Drops {
       private String Packing;
       @Column(name= "Height")
       private String Height;
-      @Column(name= "SKILLSET")
-      private String skills;
-      @Column(name= "PRIORITY")
-      private String priority;
       @Column(name= "LoadingOrder")
       private String LoadingOrder;
       @Column(name= "AROUTECOCDESC")
@@ -159,4 +161,14 @@ public class Drops {
       private String aprodCategDesc;
       @Column(name= "AVEHCLASSLISTDESC")
       private String avehClassListDesc;
+      @Column(name= "PRIORITY")
+      private int priority;
+      @Column(name= "SKILLSET")
+      private String skills;
+//      @Column(name= "NOOFCASES")
+//      private String noofCases;
+//      @Column(name= "ACTCASES")
+//      private String mainCases;
+
+
 }

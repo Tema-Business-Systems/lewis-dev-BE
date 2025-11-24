@@ -41,19 +41,14 @@ public class DocDs {
       private String uom;
       @Column(name= "DOCLINENO")
       private String doclineno;
-      @Column(name= "PURUNIT")
-      private String puu;
-      @Column(name= "CONV_QTY")
-      private String convQty;
-      @Column(name= "ORDERNO")
-      private String orderNo;
       @Column(name= "WEIGHT")
       private String weight;
+      @Column(name= "WEU")
+      private String weu;
       @Column(name= "VOLUME")
       private String volume;
-      @Column(name= "WEI_UNIT")
-      private String wei_unit;
-      @Column(name= "VOL_UNIT")
-      private String vol_unit;
+      @Column(name= "VOU")
+      private String vou;
+
 
 }

@@ -3,8 +3,6 @@ package com.transport.tracking.response;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Column;
-
 @Getter
 @Setter
 public class ProductVO {
@@ -15,11 +13,9 @@ public class ProductVO {
     private String quantity;
     private String uom;
     private String docLineNum;
-    private String convQty;
-    private String puu;
     private String weight;
+    private String weu;
     private String volume;
-    private String wei_unit;
-    private String vol_unit;
+    private String vou;
 
 }

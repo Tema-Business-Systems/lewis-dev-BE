@@ -54,8 +54,16 @@ public interface TripRepository extends CrudRepository<Trip, BigDecimal> {
 
 
 
-    @Query(value="select * from TMSMRCH.XX10TRIPS c where c.CODE = :veh and c.DOCDATE = to_timestamp(:date,'YYYY-MM-DD') ORDER BY c.TRIPS",nativeQuery = true)
-    public List<Trip> getTripsByCodeAndDocdate(@Param("veh") String veh,@Param("date") String date);
+    @Query(value="select * from TMSMRCH.XX10TRIPS c where c.CODE = ?1 and c.DOCDATE = ?2 ORDER BY c.TRIPS",nativeQuery = true)
+    public List<Trip> getTripsByCodeAndDocdate(String veh,Date date);
+
+
+
+    @Query(value="select * from TMSMRCH.XX10TRIPS c where c.TRIPCODE LIKE 'VR-%' ORDER BY c.TRIPCODE",nativeQuery = true)
+    public List<Trip> getVRTripcode();
+
+    @Query(value = "SELECT COUNT(*) FROM TMSMRCH.XX10TRIPS WHERE CODE = :code AND CAST(DOCDATE AS DATE) = CAST(:docDate AS DATE)", nativeQuery = true)
+    int countByCodeAndDocdate(@Param("code") String code, @Param("docDate") Date docDate);
 
 
 

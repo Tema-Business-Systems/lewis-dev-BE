@@ -22,8 +22,6 @@ public class TripVO {
       private int dlvystatus;
       private String lvsno;
       private int trips;
-      private boolean lvsValidated;
-      private int lvsStatus;
       private int pickups;
       private List<DocStatusVO> docDetails;
       private String pendingDocStatus;
@@ -87,8 +85,6 @@ public class TripVO {
       private String notes;
       private String arrSite;
       private String depSite;
-      private  int alertFlg;
-      private String warningNotes;
       private String totalWeight;
       private String totalVolume;
       private Double weightPercentage;
@@ -114,9 +110,13 @@ public class TripVO {
       private String overtimeCost;
       private String generatedBy;
       private String loaderInfo;
-      private String jobId;
-      private Integer doc_qty;
-      private String uom_qty;
+      private String doc_capacity;
+      private String uom_capacity;
+      private String doc_volume;
+      private String doc_qty;
+      private String uom_volume;
+//      private String totalCases;
+//      private String mainCases;
 
       public boolean isForceSeq() {
             return forceSeq;
@@ -148,14 +148,8 @@ public class TripVO {
 
       private String adeptime;
       private String areturntime;
-      private Double per_capacity;
-      private Double per_volume;
-      private String tot_capacity;
-      private String doc_capacity;
-      private String uom_capacity;
-      private String tot_volume;
-      private String doc_volume;
-      private String uom_volume;
-	      private String routeStatus;
+      private String routeStatus;
+      private boolean lvsValidated;
+      private int lvsStatus;
 
 }

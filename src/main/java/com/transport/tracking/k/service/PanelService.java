@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
 @Component
@@ -58,28 +59,54 @@ public class PanelService {
     }
 
 
-    public DropsPanelVO getDropsPanel(List<String> site, Date date) {
+//    public DropsPanelVO getDropsPanel(List<String> site, Date date) {
+//
+//        DropsPanelVO dropsPanelVO = new DropsPanelVO();
+//
+//        Map<String, String> dropsVehicleMap = new HashMap<>();
+//
+//        Map<String, List<String>> map = this.cacheService.getSelectedTrips(site, date, dropsVehicleMap);
+//        try {
+//            CompletableFuture<List<DropsVO>> dropsFuture = asyncService.getDrops(site, date, map.get(TransportConstants.DROPS), dropsVehicleMap);
+//            CompletableFuture<List<PickUPVO>> pickupFuture = asyncService.getPickUps(site, date, map.get(TransportConstants.PICKUP), dropsVehicleMap);
+//
+//            CompletableFuture.allOf(dropsFuture, pickupFuture).join();
+//
+//            dropsPanelVO.drops = dropsFuture.get();
+//            dropsPanelVO.pickUps = pickupFuture.get();
+//
+//        }catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return dropsPanelVO;
+//
+//    }
+public DropsPanelVO getDropsPanel(List<String> site, Date date) {
+    DropsPanelVO dropsPanelVO = new DropsPanelVO();
 
-        DropsPanelVO dropsPanelVO = new DropsPanelVO();
+    Map<String, String> dropsVehicleMap = new HashMap<>();
+    Map<String, List<String>> map = this.cacheService.getSelectedTrips(site, date, dropsVehicleMap);
 
-        Map<String, String> dropsVehicleMap = new HashMap<>();
+    CompletableFuture<List<DropsVO>> dropsFuture = asyncService.getDrops(site, date, map.get(TransportConstants.DROPS), dropsVehicleMap);
+    CompletableFuture<List<PickUPVO>> pickupFuture = asyncService.getPickUps(site, date, map.get(TransportConstants.PICKUP), dropsVehicleMap);
 
-        Map<String, List<String>> map = this.cacheService.getSelectedTrips(site, date, dropsVehicleMap);
-        try {
-            CompletableFuture<List<DropsVO>> dropsFuture = asyncService.getDrops(site, date, map.get(TransportConstants.DROPS), dropsVehicleMap);
-            CompletableFuture<List<PickUPVO>> pickupFuture = asyncService.getPickUps(site, date, map.get(TransportConstants.PICKUP), dropsVehicleMap);
-
-            CompletableFuture.allOf(dropsFuture, pickupFuture).join();
-
-            dropsPanelVO.drops = dropsFuture.get();
-            dropsPanelVO.pickUps = pickupFuture.get();
-
-        }catch (Exception e) {
-            e.printStackTrace();
-        }
-        return dropsPanelVO;
-
+    try {
+        dropsPanelVO.drops = dropsFuture.get();
+    } catch (Exception e) {
+        e.printStackTrace();
+        dropsPanelVO.drops = Collections.emptyList();
     }
+
+    try {
+        dropsPanelVO.pickUps = pickupFuture.get();
+    } catch (Exception e) {
+        e.printStackTrace();
+        dropsPanelVO.pickUps = Collections.emptyList();
+    }
+
+    return dropsPanelVO;
+}
+
 
 
     //@Cacheable(value = TransportConstants.VEHICLE_CACHE, key = "#site", unless = "#result == null")
@@ -151,29 +178,62 @@ public class PanelService {
 
 
 
-    public DropsPanelVO getDropsPanelwithRange(List<String> site, Date sdate , Date edate) {
+//    public DropsPanelVO getDropsPanelwithRange(List<String> site, Date sdate , Date edate) {
+//
+//        DropsPanelVO dropsPanelVO = new DropsPanelVO();
+//
+//        Map<String, String> dropsVehicleMap = new HashMap<>();
+//
+//
+//        Map<String, List<String>> map = this.cacheService.getSelectedTrips(site, sdate, dropsVehicleMap);
+//        try {
+//            CompletableFuture<List<DropsVO>> dropsFuture = asyncService.getDropsWithRange(site, sdate,edate, map.get(TransportConstants.DROPS), dropsVehicleMap);
+//            CompletableFuture<List<PickUPVO>> pickupFuture = asyncService.getPickUpsWithRange(site, sdate,edate, map.get(TransportConstants.PICKUP), dropsVehicleMap);
+//
+//            CompletableFuture.allOf(dropsFuture, pickupFuture).join();
+//
+//            dropsPanelVO.drops = dropsFuture.get();
+//            dropsPanelVO.pickUps = pickupFuture.get();
+//
+//        }catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return dropsPanelVO;
+//
+//    }
 
+    public DropsPanelVO getDropsPanelwithRange(List<String> site, Date sdate, Date edate) {
         DropsPanelVO dropsPanelVO = new DropsPanelVO();
 
         Map<String, String> dropsVehicleMap = new HashMap<>();
-
-
         Map<String, List<String>> map = this.cacheService.getSelectedTrips(site, sdate, dropsVehicleMap);
-        try {
-            CompletableFuture<List<DropsVO>> dropsFuture = asyncService.getDropsWithRange(site, sdate,edate, map.get(TransportConstants.DROPS), dropsVehicleMap);
-            CompletableFuture<List<PickUPVO>> pickupFuture = asyncService.getPickUpsWithRange(site, sdate,edate, map.get(TransportConstants.PICKUP), dropsVehicleMap);
 
-            CompletableFuture.allOf(dropsFuture, pickupFuture).join();
+        // Handle exceptions inside each future
+        CompletableFuture<List<DropsVO>> dropsFuture =
+                asyncService.getDropsWithRange(site, sdate, edate, map.get(TransportConstants.DROPS), dropsVehicleMap)
+                        .exceptionally(ex -> {
+                            ex.printStackTrace();
+                            return Collections.emptyList();
+                        });
 
-            dropsPanelVO.drops = dropsFuture.get();
-            dropsPanelVO.pickUps = pickupFuture.get();
+        CompletableFuture<List<PickUPVO>> pickupFuture =
+                asyncService.getPickUpsWithRange(site, sdate, edate, map.get(TransportConstants.PICKUP), dropsVehicleMap)
+                        .exceptionally(ex -> {
+                            ex.printStackTrace();
+                            return Collections.emptyList();
+                        });
 
-        }catch (Exception e) {
-            e.printStackTrace();
-        }
+        // Wait for both (now safe, since neither can fail)
+        CompletableFuture.allOf(dropsFuture, pickupFuture).join();
+
+        // Retrieve results
+        dropsPanelVO.drops = dropsFuture.join();
+        dropsPanelVO.pickUps = pickupFuture.join();
+
         return dropsPanelVO;
-
     }
+
+
 
 
 

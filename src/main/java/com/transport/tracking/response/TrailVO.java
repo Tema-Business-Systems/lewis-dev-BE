@@ -106,5 +106,4 @@ public class TrailVO {
       private BigDecimal rowid;
       private String type = "open";
       private boolean isDropped;
-	   private String isStockExist;
 }

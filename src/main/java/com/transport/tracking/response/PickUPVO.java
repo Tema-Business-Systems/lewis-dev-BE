@@ -18,19 +18,14 @@ public class PickUPVO {
       private String trailer;
       private String carrier;
       private String docnum;
-      private String fromTime;
-      private String toTime;
       private String docinst;
-      private String aroutecodeDesc;
-      private String aprodCategDesc;
-      private String avehClassListDesc;
-      private String skills;
-      private String priority;
       private String vrseq;
       private String seq;
       private String adrescode;
       private String adresname;
       private String docdate;
+      private String fromTime;
+      private String toTime;
       private String routeTag;
       private String routeColor;
       private String routeTagFRA;
@@ -86,5 +81,11 @@ public class PickUPVO {
       private String LoadingOrder;
       private String loadBay;
       private String tailGate;
-
+      private String aroutecodeDesc;
+      private String aprodCategDesc;
+      private String avehClassListDesc;
+      private int priority;
+      private String skills;
+//      private String noofCases;
+//      private String mainCases;
 }

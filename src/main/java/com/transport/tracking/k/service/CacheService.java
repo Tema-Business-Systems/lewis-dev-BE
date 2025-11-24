@@ -5,8 +5,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.transport.tracking.k.constants.TransportConstants;
 import com.transport.tracking.model.*;
-import lombok.extern.slf4j.Slf4j;
-import com.transport.tracking.repository.*;
+import com.transport.tracking.repository.FacilityRepository;
+import com.transport.tracking.repository.TripRepository;
+import com.transport.tracking.repository.VehRouteDetailRepository;
+import com.transport.tracking.repository.VehicleRepository;
+import com.transport.tracking.repository.LoadVehStockRepository;
 import com.transport.tracking.response.DocStatusVO;
 import com.transport.tracking.response.TripVO;
 import com.transport.tracking.response.Trip_ReportVO;
@@ -33,13 +36,13 @@ public class CacheService {
     private FacilityRepository facilityRepository;
 
     @Autowired
+    private LoadVehStockRepository loadVehStockRepository;
+
+    @Autowired
     private VehicleRepository vehicleRepository;
 
     @Autowired
     private VehRouteDetailRepository vehRouteDetailRepository;
-
-    @Autowired
-    private LoadVehStockRepository loadVehStockRepository;
 
     @CachePut(value = TransportConstants.TRIPS_CACHE, key = "{#site, #date}", unless = "#result == null")
     public List<TripVO> updateTrips(List<String> site, Date date) {
@@ -220,6 +223,32 @@ public class CacheService {
             tripVO.setWeightPercentage(0d);
         }
 
+//        if(Objects.isNull(trip.getMainCases())) {
+//            tripVO.setMainCases("0");
+//        }else {
+//            tripVO.setMainCases(trip.getMainCases());
+//        }
+
+
+//        if(Objects.isNull(trip.getTotalCases())) {
+//            tripVO.setTotalCases("0");
+//        }else {
+//            tripVO.setTotalCases(trip.getTotalCases());
+//            tripVO.setDoc_qty(trip.getTotalCases());
+//        }
+
+
+
+        //optistatus
+        if(Objects.isNull(trip.getOptistatus())) {
+            tripVO.setOptistatus("Optimized");
+        }
+        else {
+            tripVO.setOptistatus(trip.getOptistatus());
+        }
+
+
+
         PlanChalanA planChalanA = trip.getPlanChalanA();
 //        if(Objects.nonNull(planChalanA) && planChalanA.getValid() == 2) {
 //            tripVO.setTmsValidated(true);
@@ -235,13 +264,6 @@ public class CacheService {
             tripVO.setForceSeq(true);
         }
 
-        if(Objects.isNull(trip.getAlertFlg())) {
-            tripVO.setAlertFlg(0);
-        }
-
-        if(Objects.isNull(trip.getWarningNotes())) {
-            tripVO.setWarningNotes(" ");
-        }
 
         LoadVehStock loadVehStock = loadVehStockRepository.findByXvrsel(trip.getTripCode());
         if(Objects.nonNull(loadVehStock)) {
@@ -250,10 +272,7 @@ public class CacheService {
             }
             tripVO.setLvsStatus(loadVehStock.getXloadflg());
         }
-		
-		
-		
-		
+
         // trip status
         if(Objects.nonNull(loadVehStock)) {
             switch (loadVehStock.getXloadflg()) {
@@ -264,19 +283,19 @@ public class CacheService {
                     tripVO.setRouteStatus("To Load");
                     break;
                 case 3:
-                    tripVO.setRouteStatus("Load To Truck/Trailer");
+                    tripVO.setRouteStatus("Loaded");
                     break;
                 case 4:
                     tripVO.setRouteStatus("Confirmed");
                     break;
                 case 5:
-                    tripVO.setRouteStatus("Completed");
+                    tripVO.setRouteStatus("Trip Completed");
                     break;
                 case 6:
-                    tripVO.setRouteStatus("Unloaded");
+                    tripVO.setRouteStatus("Unloaded in Stage Location");
                     break;
                 case 7:
-                    tripVO.setRouteStatus("CheckOut");
+                    tripVO.setRouteStatus("Returned");
                     break;
                 case 8:
                     tripVO.setRouteStatus("ALL");
@@ -288,19 +307,61 @@ public class CacheService {
                     tripVO.setRouteStatus("Checked-Out");
                     break;
                 case 11:
-                    tripVO.setRouteStatus("Cancel");
+                    tripVO.setRouteStatus("Loads in Completed");
                     break;
                 case 12:
-                    tripVO.setRouteStatus("Route In Progress");
+                    tripVO.setRouteStatus("Counts In Progress");
                     break;
                 case 13:
-                    tripVO.setRouteStatus("Loading into Stagging");
+                    tripVO.setRouteStatus("Cashier Reconcillation Completed");
                     break;
                 case 14:
-                    tripVO.setRouteStatus("Loading to Truck/Trailer");
+                    tripVO.setRouteStatus("Route Settled");
                     break;
                 case 15:
-                    tripVO.setRouteStatus("To Load");
+                    tripVO.setRouteStatus("To Allocate");
+                    break;
+                case 16:
+                    tripVO.setRouteStatus("Detail Allocated");
+                    break;
+                case 17:
+                    tripVO.setRouteStatus("To Pick");
+                    break;
+                case 18:
+                    tripVO.setRouteStatus("Pick Complete");
+                    break;
+                case 19:
+                    tripVO.setRouteStatus("Supervisor Verified");
+                    break;
+                case 20:
+                    tripVO.setRouteStatus("In-Route");
+                    break;
+                case 21:
+                    tripVO.setRouteStatus("Loads In Reconciled");
+                    break;
+                case 22:
+                    tripVO.setRouteStatus("Pick Reconciled");
+                    break;
+                case 23:
+                    tripVO.setRouteStatus("Security Verified");
+                    break;
+                case 24:
+                    tripVO.setRouteStatus("Picking");
+                    break;
+                case 25:
+                    tripVO.setRouteStatus("Picking Stopped");
+                    break;
+                case 26:
+                    tripVO.setRouteStatus("Security Not Authorized");
+                    break;
+                case 27:
+                    tripVO.setRouteStatus("Ready to Load");
+                    break;
+                case 28:
+                    tripVO.setRouteStatus("Partial Detail Allocation");
+                    break;
+                case 29:
+                    tripVO.setRouteStatus("To Pick*");
                     break;
                 default:
                     tripVO.setRouteStatus("To Load");
@@ -313,10 +374,7 @@ public class CacheService {
                 tripVO.setRouteStatus("Locked");
             }
             else {
-                if(trip.getOptistatus()==null){
-                    tripVO.setRouteStatus("None");
-                }
-                else if(trip.getOptistatus().equalsIgnoreCase("Open")) {
+                if(trip.getOptistatus().equalsIgnoreCase("Open")) {
                     tripVO.setRouteStatus("Open");
                 }
                 else {
@@ -335,31 +393,25 @@ public class CacheService {
 
             for (VehRouteDetail VO : plandList) {
                 DocStatusVO item = new DocStatusVO();
+                item.setDocumentNo(VO.getSdhnum());
+                switch (VO.getPickTcktStatus()) {
+                    case "1":
+                        item.setDocumentStatus("In Process");
+                        pstatus = "In Process";
+                        break;
+                    case "2":
+                        item.setDocumentStatus("Deliverable");
+                       // pstatus = "Deliverable";
+                        break;
+                    case "3":
+                        item.setDocumentStatus("Delivered");
+                        break;
+                    case "4":
+                        item.setDocumentStatus("Cancelled");
+                        break;
 
-                if(VO.getSdhnum() != null) {
-
-                    item.setDocumentNo(VO.getSdhnum());
-                    if(VO.getXdoctyp().equalsIgnoreCase("4")) {
-                        switch (VO.getPickTcktStatus()) {
-                            case "1":
-                                item.setDocumentStatus("In Process");
-                                pstatus = "In Process";
-                                break;
-                            case "2":
-                                item.setDocumentStatus("Deliverable");
-                                // pstatus = "Deliverable";
-                                break;
-                            case "3":
-                                item.setDocumentStatus("Delivered");
-                                break;
-                            case "4":
-                                item.setDocumentStatus("Cancelled");
-                                break;
-
-                        }
-                    }
-                    Docs.add(item);
                 }
+                Docs.add(item);
             }
             if(pstatus.length() > 0) {
                  tripVO.setPendingDocStatus(pstatus);
@@ -386,24 +438,5 @@ public class CacheService {
             e.printStackTrace();
         }
         return tripVO;
-    }
-	
-	
-	
-	    public TripVO getTripByVrcode(String vrcode) {
-        Trip trip = null;
-        if(!StringUtils.isEmpty(vrcode)) {
-
-            trip = tripRepository.findByTripCode(vrcode);
-        }
-
-        if(trip == null) {
-            //return tripsList.stream().map(a -> getTripVO(a)).collect(Collectors.toList());
-        }
-        else {
-
-            return getTripVO(trip);
-        }
-        return new TripVO();
     }
 }

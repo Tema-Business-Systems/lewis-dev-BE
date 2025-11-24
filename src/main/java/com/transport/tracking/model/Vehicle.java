@@ -9,7 +9,6 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -22,8 +21,6 @@ public class Vehicle {
       private String codeyve;
       @Column(name= "NAME_0")
       private String name;
-      @Column(name= "SKILLSET")
-      private String skills;
       @Column(name= "STARTDEPOTN_0")
       private String startdepotn;
       @Column(name = "UNAVAILLIST")
@@ -126,19 +123,19 @@ public class Vehicle {
       private BigDecimal heigth;
       @Column(name= "XWIDTH_0")
       private BigDecimal width;
-	    @Column(name= "ISSTOCKEXIST")
-      private String isStockExist;
+      @Column(name= "ROUTECODE")
+      private String routeCode;
+      @Column(name= "ROUTECODEDESC")
+      private String routeCodeDesc;
+      @Column(name= "SKILLSET")
+      private String skills;
       @Column(name= "AROUTECOCDESC")
       private String aroutecodeDesc;
       @Column(name= "APRODCATEGDESC")
       private String aprodCategDesc;
       @Column(name= "AVEHCLASSLISTDESC")
       private String avehClassListDesc;
-      @Column(name = "DRIVERID_ALLOC")
-      private String driverAllocated;
-      @Column(name = "DRI_STARTDATE")
-      private LocalDateTime dristartdate;
-      @Column(name = "DRI_ENDDATE")
-      private LocalDateTime drienddate;
+      @Column(name= "MAXQTY")
+      private int maxqty;
 
 }

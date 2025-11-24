@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Column;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -25,11 +24,5 @@ public class UserSiteVO {
       private String xx10c_geoy;
       private int fcyNumber;
       private int rowid;
-      private String driverDayShift;
-      private String driverWeekShift;
-      private String driverBreakDuration;
-      private String drivingHrsBtwBreak;
-      private String totalDrivingHrsPerDay;
-      private String totalWorkingHrsPerDay;
 
 }

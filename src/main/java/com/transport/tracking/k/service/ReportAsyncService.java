@@ -38,10 +38,10 @@ public class ReportAsyncService {
     private String dbSchema;
     //private String dbSchema = "tbs.TMSBURBAN";
 
-    private String DORPS_QUERY = "select d.*, x.PRODUCTCODE, x.PRODUCTNAME,x.PRODUCTCATEG, x.QUANTITY, x.UOM, x.DOCLINENO \n" +
+    private String DORPS_QUERY = "select d.*, x.PRODUCTCODE, x.PRODUCTNAME,x.PRODUCTCATEG, x.QUANTITY, x.UOM, x.DOCLINENO, x.WEIGHT, x.WEU, x.VOLUME, x.VOU \n" +
             " from {0}.XTMSDROP d left join {0}.XTMSDROPD x on d.DOCNUM = x.DOCNUM where {1}";
 
-    private String PICKUP_QUERY = "select d.*, x.PRODUCTCODE, x.PRODUCTNAME,x.PRODUCTCATEG, x.QUANTITY, x.UOM \n" +
+    private String PICKUP_QUERY = "select d.*, x.PRODUCTCODE, x.PRODUCTNAME,x.PRODUCTCATEG, x.QUANTITY, x.UOM, x.WEIGHT, x.WEU, x.VOLUME, x.VOU \n" +
             " from {0}.XTMSPICKUP d left join {0}.XTMSPICKUPD x on d.DOCNUM = x.DOCNUM where {1}";
 
     private static String ONLY_DATE = "d.DOCDATE = ''{0}''";

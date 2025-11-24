@@ -7,7 +7,6 @@ import com.transport.tracking.k.service.TransportService;
 import com.transport.tracking.model.*;
 import com.transport.tracking.response.*;
 import com.transport.tracking.k.service.PanelService;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.util.StringUtils;
@@ -16,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-@Slf4j
+
 @RestController
 @RequestMapping ("/api/v1/scheduler")
 public class SchedulerController {
@@ -98,26 +97,6 @@ public class SchedulerController {
     }
 
 
-    @GetMapping("/docs/panelwithSelDate")
-    public List<DocsVO> getDropsPanelwithSelDate(AccessTokenVO accessTokenVO, @RequestParam(name = "site", required = false) List<String> site,
-                                                 @RequestParam(name = "seldate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date seldate,
-                                                 @RequestParam(name = "active", required = false) Boolean active){
-        List<DocsVO> docsVo = new ArrayList<>();
-        if(Objects.isNull(seldate)) {
-            String dateFormate = format.format(new Date());
-            try {
-                seldate = format.parse(dateFormate);
-            }catch (Exception e) {
-            }
-        }
-        if(StringUtils.isEmpty(site) || site.size() == 0 ) {
-            return docsVo;
-        }
-        else {
-        }
-        //System.out.println("date == "+date);
-        return panelSchedulerService.getDocswithSelDate2(site, seldate);
-    }
 
     @PostMapping ("/validate")
     public @ResponseBody Map<String, String> SubmitVR(@RequestBody TripVO request) throws Exception {
@@ -144,12 +123,12 @@ public class SchedulerController {
         return  transportService.ValidateTrips(request);
     }
 
-
-
     @PostMapping ("/trips")
     public @ResponseBody Map<String, Object> submitResponse(@RequestBody List<TripVO> request) throws Exception {
         return transportService.saveTrip(request);
     }
+
+
 
     @PostMapping ("/lock/trips")
     public @ResponseBody Map<String, String> lockTrip(AccessTokenVO accessTokenVO, @RequestBody List<TripVO> request) throws JsonProcessingException {
@@ -218,6 +197,28 @@ public class SchedulerController {
         return panelService.getDropsPanel(site, date);
     }
 
+    @GetMapping("/docs/panelwithSelDate")
+    public List<DocsVO> getDropsPanelwithSelDate(AccessTokenVO accessTokenVO, @RequestParam(name = "site", required = false) List<String> site,
+                                                 @RequestParam(name = "seldate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date seldate,
+                                                 @RequestParam(name = "active", required = false) Boolean active){
+        List<DocsVO> docsVo = new ArrayList<>();
+        if(Objects.isNull(seldate)) {
+            String dateFormate = format.format(new Date());
+            try {
+                seldate = format.parse(dateFormate);
+            }catch (Exception e) {
+            }
+        }
+        if(StringUtils.isEmpty(site) || site.size() == 0 ) {
+            return docsVo;
+        }
+        else {
+        }
+        //System.out.println("date == "+date);
+        return panelSchedulerService.getDocswithSelDate2(site, seldate);
+    }
+
+
 
     @GetMapping("/docs/panelwithRange")
     public List<DocsVO> getDropsPanelwithRange(AccessTokenVO accessTokenVO, @RequestParam(name = "site", required = false) List<String> site,
@@ -243,13 +244,13 @@ public class SchedulerController {
             }
 
         }
-        log.info(site.toString());
+        //log.info(site.toString());
         if(StringUtils.isEmpty(site) || site.size() == 0 ) {
-            log.info("inside empty");
+           // log.info("inside empty");
             return docsVo;
         }
         else {
-            log.info("Inside not empty");
+           // log.info("Inside not empty");
         }
 
         //System.out.println("date == "+date);

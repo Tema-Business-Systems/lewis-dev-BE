@@ -38,8 +38,6 @@ public class VehRouteDetail {
       private String arrivedate;
 	  @Column(name="PickTicketStatus")
       private String pickTcktStatus;
-      @Column(name= "XPICK_SDH_0")
-      private String xpickSdh;
       @Column(name="DEPARTDATE_0")
       private String departdate;
       @Column(name="XDLV_STATUS_0")

@@ -193,24 +193,4 @@ public class VehRoute {
       private String weu;
       @Column(name="XVOL_0")
       private String xvol;
-	  
-      @Column(name = "VEHIMAGE")
-      private byte[] vehImage;
-      @Column(name = "DRIVERIMAGE")
-      private byte[] driverImage;
-      @Column(name="XALLOCFLG_0")
-      private int allocationflg;
-      @Column(name="VEHICLENAME")
-      private String vehicleName;
-      @Column(name="SITENAME")
-      private String siteName;
-	    @Column(name="XFLOCTYP_0")
-      private String floctyp;
-      @Column(name="XTLOCTYP_0")
-      private String tloctyp;
-      @Column(name="XFLOC_0")
-      private String floc;
-      @Column(name="XTLOC_0")
-      private String tloc;
-
 }

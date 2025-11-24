@@ -137,28 +137,11 @@ public class Trip implements Serializable {
       @Column(name= "FORCESEQ")
       private int forceSeq;
 
-      @Column(name= "warningnotes")
-      private String warningNotes;
-      @Column(name= "alertflg")
-      private int alertFlg;
-
-      @Column(name= "PER_CAPACITY")
-      private Double per_capacity;
-
-      @Column(name= "PER_VOLUME")
-      private Double per_volume;
-
-      @Column(name= "TOT_CAPACITY")
-      private String tot_capacity;
-
       @Column(name= "DOC_CAPACITY")
       private String doc_capacity;
 
       @Column(name= "UOM_CAPACITY")
       private String uom_capacity;
-
-      @Column(name= "TOT_VOLUME")
-      private String tot_volume;
 
       @Column(name= "DOC_VOLUME")
       private String doc_volume;
@@ -166,15 +149,11 @@ public class Trip implements Serializable {
       @Column(name= "UOM_VOLUME")
       private String uom_volume;
 
-      @Column(name= "JOBID")
-      private String jobId;
-
-      @Column(name= "DOC_QTY")
-      private Integer doc_qty;
-      @Column(name= "UOM_QTY")
-      private String uom_qty;
-
-
+//      @Column(name= "TOTALCASES")
+//      private String totalCases;
+//
+//      @Column(name= "MAINCASES")
+//      private String mainCases;
 
       @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
       @JoinColumn(name = "TRIPCODE", referencedColumnName = "XNUMPC_0", insertable = false, updatable = false)

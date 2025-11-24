@@ -19,19 +19,16 @@ public class DropsVO {
       private String trailer;
       private String carrier;
       private String fromTime;
+      private String vehClassList;
       private String toTime;
       private String docnum;
       private String docinst;
+      private String vrseq;
 	    private String routeCode;
       private String routeBgColor;
       private String routeCodeDesc;
-      private String vrseq;
       private String seq;
-      private String aroutecodeDesc;
-      private String aprodCategDesc;
-      private String avehClassListDesc;
-      private String skills;
-      private String priority;
+      private String dlvflg;
       private String adrescode;
       private String adresname;
       private String carrierColor;
@@ -40,6 +37,7 @@ public class DropsVO {
       private String routeTagFRA;
       private String docdate;
       private String dlvystatus;
+      private String status;
       private String doctype;
       private String movtype;
       private String bpcode;
@@ -91,5 +89,13 @@ public class DropsVO {
       private String LoadingOrder;
       private String loadBay;
       private String tailGate;
+      private String aroutecodeDesc;
+      private String aprodCategDesc;
+      private String avehClassListDesc;
+      private int priority;
+      private String skills;
+//      private String noofCases;
+//      private String mainCases;
+
 
 }

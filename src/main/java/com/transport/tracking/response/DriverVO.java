@@ -107,13 +107,4 @@ public class DriverVO {
       private BigDecimal rowid;
       private String type = "open";
       private boolean isDropped;
-      private Long weekCycleHrs;
-      private Long weeklRemHrs;
-      private Long shiftHrs;
-      private Long scheduledHrs;
-      private Long monthCycleHrs;
-      private Long monthRemHrs;
-      private Long monthWorkedHrs;
-      private Long weeklyWorkedHrs;
-      private Long dayWorkedHrs;
 }

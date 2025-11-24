@@ -205,15 +205,5 @@ public class Driver {
       @Column(name= "XLNCDUR_0")
       private String lncduration;
 
-      @Column(name= "DRVDAYSHFT")
-      private String driverDayShiftHrs;
-      @Column(name= "DRVWEEKSHFT")
-      private String driverWeekShiftHrs;
-      @Column(name= "TOTALDRVINGHRSPERDAY")
-      private String totalDrivingHrsPerDay;
-      @Column(name= "TOTALWORKINGHRSPERDAY")
-      private String totalWorkingHrsPerDay;
-
-
 
 }

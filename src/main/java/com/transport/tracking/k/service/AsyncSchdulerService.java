@@ -60,23 +60,23 @@ public class AsyncSchdulerService {
     private NamedParameterJdbcTemplate jdbcTemplate;
 
     @Value("${time.hours.add}")
-    private int hours = 9;
+    private int hours = 16;
 
     @Value("${db.schema}")
     private String dbSchema;
     //private String dbSchema = "tbs.TMSBURBAN";
 
-    private String DORPS_QUERY = "select d.*, x.PRODUCTCODE, x.PRODUCTNAME,x.PRODUCTCATEG, x.QUANTITY,x.WEIGHT, x.VOLUME, x.WEI_UNIT, x.VOL_UNIT, x.UOM, x.DOCLINENO, x.CONV_QTY, x.PURUNIT \n" +
+    private String DORPS_QUERY = "select d.*, x.PRODUCTCODE, x.PRODUCTNAME,x.PRODUCTCATEG, x.QUANTITY, x.UOM, x.DOCLINENO, x.WEIGHT, x.WEU, x.VOLUME, x.VOU \n" +
             " from {0}.XTMSDROP d left join {0}.XTMSDROPD x on d.DOCNUM = x.DOCNUM where {1}";
 
-    private String PICKUP_QUERY = "select d.*, x.PRODUCTCODE, x.PRODUCTNAME,x.PRODUCTCATEG, x.QUANTITY,x.WEIGHT, x.VOLUME, x.WEI_UNIT, x.VOL_UNIT, x.UOM, x.DOCLINENO, x.CONV_QTY, x.PURUNIT \n" +
+    private String PICKUP_QUERY = "select d.*, x.PRODUCTCODE, x.PRODUCTNAME,x.PRODUCTCATEG, x.QUANTITY, x.UOM, x.DOCLINENO, x.WEIGHT, x.WEU, x.VOLUME, x.VOU \n" +
             " from {0}.XTMSPICKUP d left join {0}.XTMSPICKUPD x on d.DOCNUM = x.DOCNUM where {1}";
 
-    private String DOCS_QUERY = "select d.*, x.PRODUCTCODE, x.PRODUCTNAME,x.PRODUCTCATEG, x.QUANTITY,x.WEIGHT, x.VOLUME, x.WEI_UNIT, x.VOL_UNIT, x.UOM, x.DOCLINENO, x.CONV_QTY, x.PURUNIT \n" +
+    private String DOCS_QUERY = "select d.*, x.PRODUCTCODE, x.PRODUCTNAME,x.PRODUCTCATEG, x.QUANTITY, x.UOM, x.DOCLINENO, x.WEIGHT, x.WEU, x.VOLUME, x.VOU \n" +
             " from {0}.XSCHDOCS d left join {0}.XSCHDOCSD x on d.DOCNUM = x.DOCNUM where d.SITE IN {1} AND d.DOCDATE BETWEEN  ''{2}'' AND ''{3}'' ORDER BY d.TRIPNO, d.SEQ  ASC ";
 
 
-    private String DOCS_QUERY2 = "select d.*, x.PRODUCTCODE, x.PRODUCTNAME,x.PRODUCTCATEG, x.QUANTITY,x.WEIGHT, x.VOLUME, x.WEI_UNIT, x.VOL_UNIT, x.UOM, x.DOCLINENO, x.CONV_QTY, x.PURUNIT \n" +
+    private String DOCS_QUERY2 = "select d.*, x.PRODUCTCODE, x.PRODUCTNAME,x.PRODUCTCATEG, x.QUANTITY, x.UOM, x.DOCLINENO, x.WEIGHT, x.WEU, x.VOLUME, x.VOU \n" +
             " from {0}.XSCHDOCS d left join {0}.XSCHDOCSD x on d.DOCNUM = x.DOCNUM where {1}";
 
     private static String ONLY_DATE = "d.DOCDATE = ''{0}''";
@@ -234,6 +234,37 @@ public class AsyncSchdulerService {
 
         return bd;
     }
+
+
+    public List<DocsVO> getDocsWithSelDate2(List<String> site, Date seldate) {
+        List<Docs> drops = null;
+        List<DocsVO> dropsList = new ArrayList<>();
+        Map<String, String> paramMap = new HashMap<>();
+        List<Map<String, Object>> resultList2 = new ArrayList<>();
+        List<Docs> resultList = new ArrayList<>();
+        String Sites =  this.ListtoString(site);
+        if(!StringUtils.isEmpty(site)) {
+            // resultList2 = jdbcTemplate.queryForList(MessageFormat.format(DOCS_QUERY, dbSchema,Sites,dateFormat.format(sdate),dateFormat.format(edate)), paramMap);
+            resultList2 = jdbcTemplate.queryForList(MessageFormat.format(DOCS_QUERY2, dbSchema,
+                    MessageFormat.format(SITE_DATE, Sites, dateFormat.format(seldate))), paramMap);
+        }else {
+            resultList2 = jdbcTemplate.queryForList(MessageFormat.format(DOCS_QUERY2, dbSchema,
+                    MessageFormat.format(ONLY_DATE, dateFormat.format(seldate))), paramMap);
+        }
+        if(!CollectionUtils.isEmpty(resultList2)) {
+            /*dropsList = resultList.stream().map(a-> this.convertDrops(a))
+                    .collect(Collectors.toList());*/
+            dropsList = this.convertDocs2(resultList2);
+            List<DocsVO> finallist = sortedDocs(dropsList);
+            return finallist;
+        }
+        else {
+            List<DocsVO> emptyDocs = new ArrayList<>();
+            dropsList = emptyDocs;
+        }
+        return dropsList;
+    }
+
 
 
     private int convertDectoString(double x){
@@ -601,38 +632,6 @@ public class AsyncSchdulerService {
         return CompletableFuture.completedFuture(dropsList);
     }
 
-    private String getGroupingColor(Date docdate) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(docdate);
-        int day =  cal.get(Calendar.DAY_OF_WEEK);
-        String groupColor = ";font-style:normal;background-color:#92a8d1";
-        switch (day) {
-            case 1 :
-                groupColor = ";font-style:normal;background-color:#FBEAEB";
-                break;
-            case 2 :
-                groupColor = ";font-style:normal;background-color:#FCE77D";
-                break;
-            case 3 :
-                groupColor = ";font-style:normal;background-color:#D4D4CE";
-                break;
-            case 4 :
-                groupColor = ";font-style:normal;background-color:#3AAFA9";
-                break;
-            case 5 :
-                groupColor = ";font-style:normal;background-color:#CCF381";
-                break;
-            case 6 :
-                groupColor = ";font-style:normal;background-color:#EEA47FFF";
-                break;
-            case 7 :
-                groupColor = ";font-style:normal;background-color:#d7d3ed";
-                break;
-        }
-        return groupColor;
-    }
-
-
     private List<DropsVO> convertDrops(List<Map<String, Object>> list, List<String> dropsList, Map<String, String> dropsVehicleMap ) {
         Map<String, DropsVO> dropsMap = new HashMap<>();
         for(Map<String, Object> map: list) {
@@ -663,6 +662,7 @@ public class AsyncSchdulerService {
         dropsVO.setRouteTagFRA(this.convertToString(drops.get("ROUTETAGFRA")));
         dropsVO.setDocdate(this.convertToString(drops.get("DOCDATE")));
         dropsVO.setDlvystatus(this.convertToString(drops.get("DLVYSTATUS")));
+        dropsVO.setStatus(this.convertToString(drops.get("STATUS")));
         dropsVO.setDocinst(this.convertToString(drops.get("DOCINST")));
         dropsVO.setPtlink(this.convertToString(drops.get("PTLINK")));
         dropsVO.setPtheader(this.convertToString(drops.get("PTHEADER")));
@@ -741,30 +741,28 @@ public class AsyncSchdulerService {
 
         dropsVO.setDoctype(this.convertToString(drops.get("DOCTYPE")));
         dropsVO.setMovtype(this.convertToString(drops.get("MOVTYPE")));
-      	dropsVO.setAllDrivers(this.convertToString(drops.get("ALLDRIVERS")));
+		dropsVO.setAllDrivers(this.convertToString(drops.get("ALLDRIVERS")));
+        dropsVO.setDlvflg(this.convertToString(drops.get("DLVFLG")));
         dropsVO.setAllVehClass(this.convertToString(drops.get("ALLVEHCLASS")));
         dropsVO.setDriverList(this.convertToString(drops.get("DRIVERLIST")));
         dropsVO.setVehClassList(this.convertToString(drops.get("VEHCLASSLIST")));
         dropsVO.setPriorityOrder(this.convertToString(drops.get("PRIORITYORDER")));
-        dropsVO.setPriority (this.convertToString(drops.get("PRIORITY")));
         dropsVO.setPrelistCode(this.convertToString(drops.get("PRELISTCODE")));
         dropsVO.setFromTime(this.convertToString(drops.get("FROMTIME")));
         dropsVO.setToTime(this.convertToString(drops.get("TOTIME")));
         dropsVO.setAvailDays(this.convertToString(drops.get("availDays")));
+        
         dropsVO.setRouteTag(this.convertToString(drops.get("ROUTETAG")));
         dropsVO.setRouteColor(this.convertToString(drops.get("ROUTECOLOR")));
         dropsVO.setRouteTagFRA(this.convertToString(drops.get("ROUTETAGFRA")));
-        dropsVO.setSkills(this.convertToString(drops.get("SKILLSET")));
-        dropsVO.setAprodCategDesc(this.convertToString(drops.get("APRODCATEGDESC")));
-        dropsVO.setAroutecodeDesc(this.convertToString(drops.get("AROUTECOCDESC")));
-        dropsVO.setAvehClassListDesc(this.convertToString(drops.get("AVEHCLASSLISTDESC")));
-        dropsVO.setRouteCode(this.convertToString(drops.get("ROUTECODE")));
+		 dropsVO.setRouteCode(this.convertToString(drops.get("ROUTECODE")));
         dropsVO.setRouteBgColor(this.convertToString(drops.get("ROUTECODEBGCLR")));
         dropsVO.setRouteCodeDesc(this.convertToString(drops.get("ROUTECODEDESC")));
         dropsVO.setVehClassAssoc(this.convertToString(drops.get("VEHICLECLASSASSOC")));
         dropsVO.setDocdate(this.convertToString(drops.get("DOCDATE")));
         dropsVO.setMiscpickflg((Integer) drops.get("MISCPICK"));
         dropsVO.setDlvystatus(this.convertToString(drops.get("DLVYSTATUS")));
+        dropsVO.setStatus(this.convertToString(drops.get("STATUS")));
         dropsVO.setDocinst(this.convertToString(drops.get("DOCINST")));
         dropsVO.setArvtime(this.convertToString(drops.get("ARVTIME")));
         dropsVO.setDeptime(this.convertToString(drops.get("DEPTIME")));
@@ -799,16 +797,12 @@ public class AsyncSchdulerService {
         dropsVO.setPairedDoc(this.convertToString(drops.get("PAIREDDOC")));
         dropsVO.setServiceTime(this.convertToString(drops.get("SERVICETIME")));
         dropsVO.setWaitingTime(this.convertToString(drops.get("WaitingTime")));
-        if(Objects.nonNull(drops.get("DOCDATE"))) {
-            Date dd = this.convertToDate(drops.get("DOCDATE"));
-            String groupcolor = this.getGroupingColor(dd);
-            if(groupcolor.length() > 0) {
-                dropsVO.setGroupingColor(groupcolor);
-            }
-            else {
-                dropsVO.setGroupingColor(";font-style:normal;background-color:#92a8d1");
-            }
-        }
+        dropsVO.setLoadBay(this.convertToString(drops.get("loadBay")));
+        dropsVO.setTailGate(this.convertToString(drops.get("tailGate")));
+        dropsVO.setVehType(this.convertToString(drops.get("vehType")));
+        dropsVO.setBPServiceTime(this.convertToString(drops.get("BPServiceTime")));
+        dropsVO.setStackHeight(this.convertToString(drops.get("StackHeight")));
+        dropsVO.setTimings(this.convertToString(drops.get("Timings")));
        // dropsVO.setPacking(this.PackingConv((Short) drops.get("Packing")));
        // dropsVO.setHeight(this.HeightConv((Short)drops.get("Height")));
        // dropsVO.setLoadingOrder(this.LoadingOrderConv((Short)drops.get("LoadingOrder")));
@@ -837,37 +831,6 @@ public class AsyncSchdulerService {
         return dropsMap;
     }
 
-
-
-    public List<DocsVO> getDocsWithSelDate2(List<String> site, Date seldate) {
-        List<Docs> drops = null;
-        List<DocsVO> dropsList = new ArrayList<>();
-        Map<String, String> paramMap = new HashMap<>();
-        List<Map<String, Object>> resultList2 = new ArrayList<>();
-        List<Docs> resultList = new ArrayList<>();
-        String Sites =  this.ListtoString(site);
-        if(!StringUtils.isEmpty(site)) {
-            // resultList2 = jdbcTemplate.queryForList(MessageFormat.format(DOCS_QUERY, dbSchema,Sites,dateFormat.format(sdate),dateFormat.format(edate)), paramMap);
-            resultList2 = jdbcTemplate.queryForList(MessageFormat.format(DOCS_QUERY2, dbSchema,
-                    MessageFormat.format(SITE_DATE, Sites, dateFormat.format(seldate))), paramMap);
-        }else {
-            resultList2 = jdbcTemplate.queryForList(MessageFormat.format(DOCS_QUERY2, dbSchema,
-                    MessageFormat.format(ONLY_DATE, dateFormat.format(seldate))), paramMap);
-        }
-        if(!CollectionUtils.isEmpty(resultList2)) {
-            /*dropsList = resultList.stream().map(a-> this.convertDrops(a))
-                    .collect(Collectors.toList());*/
-            dropsList = this.convertDocs2(resultList2);
-            List<DocsVO> finallist = sortedDocs(dropsList);
-            return finallist;
-        }
-        else {
-            List<DocsVO> emptyDocs = new ArrayList<>();
-            dropsList = emptyDocs;
-        }
-        return dropsList;
-    }
-
     private DocsVO convertDocs(Docs drops) {
         DocsVO dropsVO = new DocsVO();
         dropsVO.setDocnum(this.convertToString(drops.getDocnum()));
@@ -884,6 +847,7 @@ public class AsyncSchdulerService {
         dropsVO.setRouteCodeDesc(this.convertToString(drops.getRouteCodeDesc()));
         dropsVO.setDocdate(this.convertToString(drops.getDocdate()));
         dropsVO.setDlvystatus(this.convertToString(drops.getDlvystatus()));
+        dropsVO.setStatus(this.convertToString(drops.getStatus()));
         dropsVO.setDocinst(this.convertToString(drops.getDocinst()));
         dropsVO.setPtlink(this.convertToString(drops.getPtlink()));
         dropsVO.setDeptime(this.convertToString(drops.getDeptime()));
@@ -900,7 +864,7 @@ public class AsyncSchdulerService {
         dropsVO.setAdrescode(this.convertToString(drops.getAdrescode()));
         dropsVO.setAdresname(this.convertToString(drops.getAdresname()));
         dropsVO.setSite(this.convertToString(drops.getSite()));
-        if(Objects.nonNull(drops.getCarrierColor()) && drops.getCarrierColor().contains("background-color")) {
+        if(Objects.nonNull(drops.getCarrierColor())) {
             dropsVO.setCarrierColor(this.convertToString(drops.getCarrierColor()));
         }else {
             dropsVO.setCarrierColor(";font-style:normal;background-color:#92a8d1");
@@ -957,18 +921,15 @@ public class AsyncSchdulerService {
         productVO.setProductName(this.convertToString(map.getProdname()));
         productVO.setProductCateg(this.convertToString(map.getProdcateg()));
         productVO.setQuantity(this.convertToString(map.getQty()));
-        productVO.setConvQty(this.convertToString(map.getConvQty()));
-        productVO.setPuu(this.convertToString(map.getPuu()));
-        productVO.setWeight(this.convertToString(map.getWeight()));
-        productVO.setVolume(this.convertToString(map.getVolume()));
-        productVO.setWei_unit(this.convertToString(map.getWei_unit()));
-        productVO.setVol_unit(this.convertToString(map.getVol_unit()));
-
         if(null != productVO.getQuantity() && productVO.getQuantity().length() > 4) {
             String quant = productVO.getQuantity().substring(0, productVO.getQuantity().indexOf("."));
             productVO.setQuantity(quant);
         }
         productVO.setUom(this.convertToString(map.getUom()));
+        productVO.setWeight(this.convertToString(map.getWeight()));
+        productVO.setWeu(this.convertToString(map.getWeu()));
+        productVO.setVolume(this.convertToString(map.getVolume()));
+        productVO.setVou(this.convertToString(map.getVou()));
         return productVO;
     }
 
@@ -981,23 +942,21 @@ public class AsyncSchdulerService {
         productVO.setProductName(this.convertToString(map.get("PRODUCTNAME")));
         productVO.setProductCateg(this.convertToString(map.get("PRODUCTCATEG")));
         productVO.setQuantity(this.convertToString(map.get("QUANTITY")));
-        productVO.setConvQty(this.convertToString(map.get("CONV_QTY")));
-        productVO.setPuu(this.convertToString(map.get("PURUNIT")));
-        productVO.setWeight(this.convertToString(map.get("WEIGHT")));
-        productVO.setVolume(this.convertToString(map.get("VOLUME")));
-        productVO.setWei_unit(this.convertToString(map.get("WEI_UNIT")));
-        productVO.setVol_unit(this.convertToString(map.get("VOL_UNIT")));
-
         if(null != productVO.getQuantity() && productVO.getQuantity().length() > 4) {
             String quant = productVO.getQuantity().substring(0, productVO.getQuantity().indexOf("."));
             productVO.setQuantity(quant);
         }
         productVO.setUom(this.convertToString(map.get("UOM")));
+        productVO.setWeight(this.convertToString(map.get("WEIGHT")));
+        productVO.setWeu(this.convertToString(map.get("WEU")));
+        productVO.setVolume(this.convertToString(map.get("VOLUME")));
+        productVO.setVou(this.convertToString(map.get("VOU")));
         return productVO;
     }
 
-    private String convertToString(Object value) {
-        if(Objects.nonNull(value)) return value.toString();
+    private String convertToString(Object value ) {
+        if(Objects.nonNull(value) && !StringUtils.startsWithIgnoreCase(value.toString(),"0E"))
+            return value.toString();
         return null;
     }
 
@@ -1033,7 +992,9 @@ public class AsyncSchdulerService {
     }
 
     private Double convertDouble(Object value) {
-        if(Objects.nonNull(value)) return Double.parseDouble(value.toString());
+        if(!StringUtils.isEmpty(value))
+            return Double.parseDouble(value.toString());
+        else
         return 0.0;
     }
 

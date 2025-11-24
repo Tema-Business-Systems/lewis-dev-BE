@@ -36,30 +36,12 @@ public class UserSite {
       @Column(name= "CRY_0")
       private String cry;
       @Column(name= "XX10C_GEOX_0")
-      private String xx10c_geox;
-      @Column(name= "XX10C_GEOY_0")
       private String xx10c_geoy;
+      @Column(name= "XX10C_GEOY_0")
+      private String xx10c_geox;
       @Column(name = "XTMSFCY_0")
       private int fcyNumber;
-      @Column(name = "MAXSTOPS")
-      private int maxStops;
       @Id
       @Column(name= "ROWID")
       private int rowid;
-
-
-      @Column(name= "DRVDAYSHFT")
-      private String driverDayShift;
-      @Column(name= "DRVWEEKSHFT")
-      private String driverWeekShift;
-      @Column(name= "DRVINGBRKDUR")
-      private String driverBreakDuration;
-      @Column(name= "DRVINGHRSBTWNBRKS")
-      private String drivingHrsBtwBreak;
-      @Column(name= "TOTALDRVINGHRSPERDAY")
-      private String totalDrivingHrsPerDay;
-      @Column(name= "TOTALWORKINGHRSPERDAY")
-      private String totalWorkingHrsPerDay;
-
-
 }

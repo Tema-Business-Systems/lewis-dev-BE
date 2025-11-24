@@ -18,11 +18,17 @@ public interface LoadVehStockRepository extends CrudRepository<LoadVehStock, Str
     public LoadVehStock findByXvrsel(String vrcode);
 
 
+    public List<LoadVehStock> findByStofcyAndXxiptdatOrderByVcrnumAsc(String site, Date date);
+
+
     @Query("select c from LoadVehStock c where c.stofcy =  ?1 and MONTH(xxiptdat) = ?2 and YEAR(xxiptdat) = ?3")
     public List<LoadVehStock> findBySiteandDate(String chars, int mon, int year);
 
     @Query("select c from LoadVehStock c where c.stofcy =  ?1 and MONTH(xxiptdat) = ?2 and YEAR(xxiptdat) = ?3 and c.vcrnum like '%XCHG%' ORDER BY c.vcrnum DESC ")
     public List<LoadVehStock> findBySiteandDateOrderByVcrnumDesc(String chars, int mon, int year);
 
+
+    @Query("select c from LoadVehStock c where c.vcrnum like 'LVS-%' ORDER BY c.vcrnum DESC")
+    public List<LoadVehStock> findLatestLVSinFormat();
 
 }

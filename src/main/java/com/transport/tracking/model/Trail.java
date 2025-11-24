@@ -216,6 +216,4 @@ public class Trail {
       @Id
       @Column(name= "ROWID")
       private BigDecimal rowid;
-	   @Column(name= "ISSTOCKEXIST")
-      private String isStockExist;
 }

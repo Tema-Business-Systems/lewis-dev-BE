@@ -14,13 +14,16 @@ public class GlobalCorsConfig {
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
                         .allowedOrigins(
+                                "http://localhost:3000",
                                 "https://localhost:3000",
                                 "https://localhost:8048",
                                 "https://localhost:8049",
                                 "https://192.168.1.211:8048",
                                 "https://192.168.1.211:8049",
                                 "https://solutions.tema-systems.com:8048",
-                                "https://solutions.tema-systems.com:8049"
+                                "https://solutions.tema-systems.com:8049",
+                                "http://solutions.tema-systems.com:8048",
+                                "http://solutions.tema-systems.com:8049"
                         )
                         .allowedMethods("*")
                         .allowedHeaders("*")

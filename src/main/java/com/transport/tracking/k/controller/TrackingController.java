@@ -1,20 +1,19 @@
 package com.transport.tracking.k.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.transport.tracking.k.service.PanelSchedulerService;
-import com.transport.tracking.k.service.PanelService;
 import com.transport.tracking.k.service.TrackingService;
 import com.transport.tracking.k.service.TransportService;
-import com.transport.tracking.model.*;
-import com.transport.tracking.response.*;
+import com.transport.tracking.model.DocReportTrack;
+import com.transport.tracking.model.Driver;
+import com.transport.tracking.model.VehLiveTrack;
+import com.transport.tracking.model.Vehicle;
+import com.transport.tracking.response.AccessTokenVO;
+import com.transport.tracking.response.SiteVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -58,7 +57,7 @@ public class TrackingController {
 
     @GetMapping("/livedocsbysite")
     public List<DocReportTrack> getDocumentsBySite(AccessTokenVO accessTokenVO, @RequestParam(name = "site", required = false) String site,
-                                          @RequestParam(name = "active", required = false) Boolean active){
+                                                   @RequestParam(name = "active", required = false) Boolean active){
         return trackingService.listDocuments(site, active);
     }
 

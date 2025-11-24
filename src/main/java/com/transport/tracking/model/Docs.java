@@ -19,7 +19,9 @@ public class Docs {
 
       @Column(name= "TRAILER")
       private String trailer;
-       @Column(name= "ALLDRIVERS")
+      @Column(name= "DLVFLG")
+      private String dlvflg;
+	   @Column(name= "ALLDRIVERS")
       private String allDrivers;
       @Column(name= "ALLVEHCLASS")
       private String allVehClass;
@@ -29,8 +31,6 @@ public class Docs {
       private String vehClassList;
       @Column(name= "PRIORITYORDER")
       private String priorityOrder;
-      @Column(name= "PRIORITY")
-      private String priority;
       @Column(name= "FROMTIME")
       private String fromTime;
       @Column(name= "TOTIME")
@@ -72,14 +72,14 @@ public class Docs {
       private String adresname;
       @Column(name= "PTLINK")
       private String ptlink;
-      @Column(name= "SKILLSET")
-      private String skills;
       @Column(name= "PTHEADER")
       private String ptheader;
       @Column(name= "DOCDATE")
       private Date docdate;
       @Column(name= "DLVYSTATUS")
       private String dlvystatus;
+      @Column(name= "STATUS")
+      private String status;
       @Column(name= "DOCTYPE")
       private String doctype;
       @Column(name= "MOVTYPE")
@@ -174,11 +174,4 @@ public class Docs {
       private String Height;
       @Column(name= "LoadingOrder")
       private String LoadingOrder;
-      @Column(name= "AROUTECOCDESC")
-      private String aroutecodeDesc;
-      @Column(name= "APRODCATEGDESC")
-      private String aprodCategDesc;
-      @Column(name= "AVEHCLASSLISTDESC")
-      private String avehClassListDesc;
 }
-

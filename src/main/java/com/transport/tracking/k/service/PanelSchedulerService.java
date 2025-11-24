@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 import java.awt.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -59,13 +58,15 @@ public class PanelSchedulerService {
 
     }
 
-
     public List<DocsVO> getDocswithSelDate2(List<String> site, Date seldate) {
         List<DocsVO> docsList = new ArrayList<>();
         docsList = asyncSchdulerService.getDocsWithSelDate2(site, seldate);
-               // asyncScheduleService.getDocsWithSelDate2(site,seldate);
+        // asyncScheduleService.getDocsWithSelDate2(site,seldate);
         return docsList;
     }
+
+
+
 
 
     public List<DocsVO> getDocswithRange2(List<String> site, Date sdate , Date edate) {

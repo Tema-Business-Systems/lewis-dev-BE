@@ -1,18 +1,16 @@
 package com.transport.tracking.k.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.transport.tracking.k.service.ModifierService;
 import com.transport.tracking.k.service.PanelService;
 import com.transport.tracking.k.service.TransportService;
-import com.transport.tracking.k.service.UserService;
 import com.transport.tracking.model.LoadVehStock;
 import com.transport.tracking.model.Vehicle;
 import com.transport.tracking.model.Trip;
 import com.transport.tracking.model.*;
 import com.transport.tracking.response.*;
-import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -29,22 +27,11 @@ public class TransportController {
     @Autowired
     private TransportService transportService;
 
-    @Autowired
-    private ModifierService modifierService;
 
     @Autowired
     private PanelService panelService;
 
-    @Autowired
-    private UserService userService;
-
     private static SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-
-    @GetMapping("/allDocs")
-    public List<DocsVO> getAllDocs() {
-        return transportService.getAllDocs();
-    }
-
 
     @GetMapping
     public String ping() {
@@ -96,6 +83,12 @@ public class TransportController {
     {
         return transportService.getVehiclebySite(sites,date);
     }
+	
+	 @GetMapping("/routecodes")
+    public List<RouteCode> getRouteCodes(AccessTokenVO accessTokenVO){
+        return transportService.getRouteCodes();
+    }
+
 
     @GetMapping("/vrdetails")
     public List<VehRouteDetail> getVrdetails(AccessTokenVO accessTokenVO, @RequestParam(name = "vrcode", required = false) String vrcode)
@@ -112,18 +105,21 @@ public class TransportController {
     }
 
 
-    @GetMapping("/routecodes")
-    public List<RouteCode> getRouteCodes(AccessTokenVO accessTokenVO){
-        return transportService.getRouteCodes();
-    }
-
-
 
     @PostMapping ("/validate")
     public @ResponseBody Map<String, String> SubmitVR(@RequestBody TripVO request) throws Exception {
       //  log.info("inside Validate Controller");
         return  transportService.ValidateTrips(request);
     }
+
+    @PostMapping ("/unlock/multipletrips")
+    public @ResponseBody Map<String, String> unlockTrips(AccessTokenVO accessTokenVO, @RequestBody List<TripVO> request) throws JsonProcessingException {
+        transportService.unlockTrips(request);
+        Map<String, String> map = new HashMap<>();
+        map.put("success", "success");
+        return map;
+    }
+
 
 
 
@@ -134,11 +130,6 @@ public class TransportController {
     }
 
 
-    @PostMapping ("/nonvalidate")
-    public @ResponseBody Map<String, String> SubmitValidatedVR(@RequestBody TripVO request) throws Exception {
-        //  log.info("inside Validate Controller");
-        return  transportService.NonValidateTrips(request);
-    }
 
 
 
@@ -151,21 +142,20 @@ public class TransportController {
 
 
     @PostMapping ("/trips")
-    public @ResponseBody Map<String, Object> submitResponse(@RequestBody List<TripVO> request) throws Exception {
-        return transportService.saveTrip(request);
+    public ResponseEntity<Map<String,Object>> submitResponse(@RequestBody List<TripVO> request) throws Exception {
+
+       // Map<String,Object> result = transportService.saveTrip(request);
+        Map<String,Object> result = transportService.saveTrip(request);
+        if ("failed".equals(result.get("status"))) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+        }
+        return ResponseEntity.ok(result);
+
     }
 
     @PostMapping ("/lock/trips")
     public @ResponseBody Map<String, String> lockTrip(AccessTokenVO accessTokenVO, @RequestBody List<TripVO> request) throws JsonProcessingException {
         transportService.lockTrip(request);
-        Map<String, String> map = new HashMap<>();
-        map.put("success", "success");
-        return map;
-    }
-
-    @PostMapping ("/unlock/multipletrips")
-    public @ResponseBody Map<String, String> unlockTrips(AccessTokenVO accessTokenVO, @RequestBody List<TripVO> request) throws JsonProcessingException {
-        transportService.unlockTrips(request);
         Map<String, String> map = new HashMap<>();
         map.put("success", "success");
         return map;
@@ -186,33 +176,6 @@ public class TransportController {
         map.put("success", "success");
         return map;
     }
-
-
-    @PostMapping("/update/jobid")
-    public @ResponseBody Map<String, String> updateDeletedDoc(@RequestBody Map<String, String> requestData) {
-        Map<String, String> response = new HashMap<>();
-
-        try {
-            String tripId = requestData.get("tripid");
-            String jobId = requestData.get("jobid");
-
-            if (tripId == null || jobId == null) {
-                response.put("status", "error");
-                response.put("message", "tripid and jobid are required");
-                return response;
-            }
-
-            transportService.updateJobIDByTripID(tripId, jobId); // Call service method
-
-            response.put("status", "success");
-        } catch (Exception e) {
-            response.put("status", "error");
-            response.put("message", e.getMessage());
-        }
-
-        return response;
-    }
-
 
 
     @PostMapping ("/update/deldoc")
@@ -242,6 +205,7 @@ public class TransportController {
         //System.out.println("date == "+date);
         return transportService.getTripsWithRange(site, sdate, edate);
     }
+
 
     @PostMapping ("/delete/trip")
     public @ResponseBody Map<String, String> deleteTrip(AccessTokenVO accessTokenVO, @RequestBody List<TripVO> request) throws JsonProcessingException {
@@ -397,134 +361,6 @@ public class TransportController {
         return panelService.getDropsPanelwithRange(site, sdate,edate);
     }
 
-
-      // submit for lvs allocation  into specific table
-    @PostMapping ("/allocation")
-    public @ResponseBody Map<String, String> SubmitforAllocation(@RequestBody List<LVSAllocationVO> request) throws Exception {
-        //  log.info("inside Validate Controller");
-        transportService.SubmitforAlocation(request);
-        Map<String, String> map = new HashMap<>();
-        map.put("success", "success");
-        return map;
-    }
-
-
-    
-    // get openDocuments for Deletion
-
-    @GetMapping("/opendocsBySiteAndDateRange")
-    public List<OpenDocsVO> getDocumentswithRange(AccessTokenVO accessTokenVO, @RequestParam(name = "site", required = false) List<String> site,
-                                               @RequestParam(name = "sdate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date sdate,
-                                               @RequestParam(name = "edate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date edate,
-                                               @RequestParam(name = "active", required = false) Boolean active){
-        List<OpenDocsVO> docsVo = new ArrayList<>();
-        if(Objects.isNull(sdate)) {
-            String dateFormate = format.format(new Date());
-            try {
-                sdate = format.parse(dateFormate);
-            }catch (Exception e) {
-
-            }
-
-        }
-        if(Objects.isNull(edate)) {
-            String dateFormate = format.format(new Date());
-            try {
-                edate = format.parse(dateFormate);
-            }catch (Exception e) {
-
-            }
-
-        }
-        if(StringUtils.isEmpty(site) || site.size() == 0 ) {
-             return docsVo;
-        }
-        else {
-
-        }
-
-        //System.out.println("date == "+date);
-
-
-        return modifierService.getOpenDocsWithRange(site, sdate,edate);
-    }
-
-
-    @PostMapping ("/OpenDocs/deleteDocs")
-    public @ResponseBody Map<String, String> deleteOpenDocs(AccessTokenVO accessTokenVO, @RequestBody List<OpenDocsVO> request) throws JsonProcessingException {
-        transportService.deleteOpenDocs(request);
-        Map<String, String> map = new HashMap<>();
-        map.put("success", "success");
-        return map;
-    }
-
-
-
-    // get openDocuments for Deletion
-
-    @GetMapping("/opentoadddocsBySiteAndDateRange")
-    public List<OpenDocsRoutesVO> getToAddDocumentswithRange(AccessTokenVO accessTokenVO, @RequestParam(name = "site", required = false) List<String> site,
-                                                  @RequestParam(name = "sdate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date sdate,
-                                                  @RequestParam(name = "edate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date edate,
-                                                  @RequestParam(name = "active", required = false) Boolean active){
-        List<OpenDocsRoutesVO> docsVo = new ArrayList<>();
-        if(Objects.isNull(sdate)) {
-            String dateFormate = format.format(new Date());
-            try {
-                sdate = format.parse(dateFormate);
-            }catch (Exception e) {
-
-            }
-
-        }
-        if(Objects.isNull(edate)) {
-            String dateFormate = format.format(new Date());
-            try {
-                edate = format.parse(dateFormate);
-            }catch (Exception e) {
-
-            }
-
-        }
-        if(StringUtils.isEmpty(site) || site.size() == 0 ) {
-            return docsVo;
-        }
-        else {
-
-        }
-
-        //System.out.println("date == "+date);
-
-
-        return modifierService.getTripsVOwithRangeofOpenDocs(site, sdate,edate);
-    }
-
-
-    @GetMapping("/tripDetails/vr")
-    public TripVO getTripdetailsByTripCode(AccessTokenVO accessTokenVO, @RequestParam(name = "vrcode", required = false) String vrcode)
-    {
-        return transportService.getTripDetailsByVRCode(vrcode);
-    }
-
-    @PostMapping ("/openDocs/addDocs")
-    public @ResponseBody Map<String, String> addDocstoRouteByOpenDocs(AccessTokenVO accessTokenVO, @RequestBody List<OpenDocsRoutesVO> request) throws JsonProcessingException {
-        transportService.addDocstoRoutes(request);
-        Map<String, String> map = new HashMap<>();
-        map.put("success", "success");
-        return map;
-    }
-
-    @PostMapping ("/createuser")
-    public ResponseEntity submitResponse2(@RequestBody User user) throws Exception {
-        Map<String, String> map = new HashMap<>();
-        if(userService.checkUserExists(user.getXlogin())){
-            map.put("Error", "User already exists");
-            return ResponseEntity.status(HttpStatus.SC_CONFLICT).body(map);
-        }
-        userService.createUserWithAlignedSites2(user);
-        map.put("success", "success");
-        return ResponseEntity.status(HttpStatus.SC_OK).body(map);
-    }
 
 
 

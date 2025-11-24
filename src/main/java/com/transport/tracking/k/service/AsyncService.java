@@ -17,12 +17,10 @@ import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.*;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import javax.persistence.EntityManager;
+
 
 @Slf4j
 @Component
@@ -30,9 +28,6 @@ public class AsyncService {
 
     @Autowired
     private VehicleRepository vehicleRepository;
-
-    @Autowired
-    private EntityManager entityManager;
 
     @Autowired
     private EquipmentRepository equipmentRepository;
@@ -50,9 +45,6 @@ public class AsyncService {
     private DriverRepository driverRepository;
 
     @Autowired
-    private DriverProRepository driverProRepository;
-
-    @Autowired
     private PickupRepository pickupRepository;
 
     @Autowired
@@ -62,20 +54,16 @@ public class AsyncService {
     private NamedParameterJdbcTemplate jdbcTemplate;
 
     @Value("${time.hours.add}")
-    private int hours = 9;
+    private int hours = 15;
 
     @Value("${db.schema}")
     private String dbSchema;
     //private String dbSchema = "tbs.TMSBURBAN";
 
-    private String DriverWeek = "select WorkWeekCycle, RemainingWorkMinutes  from {0}.vw_WeeklyDriverReport WHERE DRIVERID = ''{1}'' AND DATEPART(YEAR, REPORTYEAR) = DATEPART(YEAR, ''{2}'') AND DATEPART(WEEK, REPORTWEEK) = DATEPART(WEEK, ''{2}'') ";
-    private String DriverMonthly = "select WorkWeekCycle, RemainingWorkMinutes from {0}.vw_MonthlyDriverReport WHERE DRIVERID = ''{1}'' AND DATEPART(YEAR, REPORTYEAR) = DATEPART(YEAR, ''{2}'') AND DATEPART(WEEK, REPORTMONTH) = DATEPART(MONTH, ''{2}'') ";
-    private String DriverDate = "select * from {0}.vw_WeeklyDriverReport WHERE  d.DOCNUM = x.DOCNUM where {1}";
-
-    private String DORPS_QUERY = "select d.*, x.PRODUCTCODE, x.PRODUCTNAME,x.PRODUCTCATEG, x.QUANTITY,x.WEIGHT, x.VOLUME, x.WEI_UNIT, x.VOL_UNIT, x.UOM, x.DOCLINENO, x.CONV_QTY, x.PURUNIT \n" +
+    private String DORPS_QUERY = "select d.*, x.PRODUCTCODE, x.PRODUCTNAME,x.PRODUCTCATEG, x.QUANTITY, x.UOM, x.DOCLINENO, x.WEIGHT, x.WEU, x.VOLUME, x.VOU \n" +
             " from {0}.XTMSDROP d left join {0}.XTMSDROPD x on d.DOCNUM = x.DOCNUM where {1}";
 
-    private String PICKUP_QUERY = "select d.*, x.PRODUCTCODE, x.PRODUCTNAME,x.PRODUCTCATEG, x.QUANTITY,x.WEIGHT, x.VOLUME, x.WEI_UNIT, x.VOL_UNIT, x.UOM, x.DOCLINENO, x.CONV_QTY, x.PURUNIT \n" +
+    private String PICKUP_QUERY = "select d.*, x.PRODUCTCODE, x.PRODUCTNAME,x.PRODUCTCATEG, x.QUANTITY, x.UOM, x.DOCLINENO, x.WEIGHT, x.WEU, x.VOLUME, x.VOU \n" +
             " from {0}.XTMSPICKUP d left join {0}.XTMSPICKUPD x on d.DOCNUM = x.DOCNUM where {1}";
 
     private static String ONLY_DATE = "d.DOCDATE = ''{0}''";
@@ -119,7 +107,6 @@ public class AsyncService {
     private VehicleVO convert(Vehicle vehicle, List<String> vehicleSList,String dddate) {
         VehicleVO vehicleVO = new VehicleVO();
         vehicleVO.setCodeyve(vehicle.getCodeyve());
-		vehicleVO.setIsStockExist(vehicle.getIsStockExist());
         String vehsite = vehicle.getFcy();
         String Veh = vehicle.getCodeyve();
         log.info("inside update validate");
@@ -127,25 +114,27 @@ public class AsyncService {
         log.info(dddate);
         vehicleVO.setName(vehicle.getName());
 
-        if(!StringUtils.isEmpty(vehicle.getDrivername())) {
-            vehicleVO.setDrivername(vehicle.getDrivername());
-        }
-        vehicleVO.setDriverid(vehicle.getDriverid());
 
- if(org.apache.commons.lang3.StringUtils.isNoneBlank(vehicle.getTrailer())) {
-            vehicleVO.setTrailer(vehicle.getTrailer());
+        VehDriver vehDriver = vehDriverRepository.findDriverbyVehicleandDate(Veh,dddate);
+        if(Objects.nonNull(vehDriver)) {
+            vehicleVO.setDriverid(vehDriver.getDriverid());
+            if(!StringUtils.isEmpty(vehDriver.getDrivername())) {
+                vehicleVO.setDrivername(vehDriver.getDrivername());
+            }else {
+                vehicleVO.setDrivername("");
+            }
         }
+
 
        // vehicleVO.setDriverid(vehicle.getDriverid());
        // if(org.apache.commons.lang3.StringUtils.isNoneBlank(vehicle.getTrailer())) {
-      /*  VehTrail vehTrail =  vehTrailRepository.findTrailerbyVehicleSiteandDate(Veh,vehsite,dddate);
+        VehTrail vehTrail =  vehTrailRepository.findTrailerbyVehicleSiteandDate(Veh,vehsite,dddate);
 
             if(Objects.nonNull(vehTrail)) {
                 vehicleVO.setTrailer(vehTrail.getTrailer());
                 log.info(vehTrail.getTrailer());
             }
            // vehicleVO.setTrailer(vehicle.getTrailer());
-		   */
 
         List<String> equipmentList = new ArrayList<>();
         if(org.apache.commons.lang3.StringUtils.isNoneBlank(vehicle.getEquipment1())) {
@@ -173,6 +162,13 @@ public class AsyncService {
         vehicleVO.setCapacities(vehicle.getCapacities());
         vehicleVO.setVol(vehicle.getVol());
         vehicleVO.setMaxordercnt(vehicle.getMaxordercnt());
+        vehicleVO.setAprodCategDesc(vehicle.getAprodCategDesc());
+        vehicleVO.setAroutecodeDesc(vehicle.getAroutecodeDesc());
+        vehicleVO.setAvehClassListDesc(vehicle.getAvehClassListDesc());
+        vehicleVO.setMaxqty(vehicle.getMaxqty());
+        vehicleVO.setSkills(vehicle.getSkills());
+        vehicleVO.setRouteCode(vehicle.getRouteCode());
+        vehicleVO.setRouteCodeDesc(vehicle.getRouteCodeDesc());
 
         //vehicleVO.setType("open");
         String startTime = vehicle.getStarttime();
@@ -192,7 +188,6 @@ public class AsyncService {
         vehicleVO.setStarttime(vehicle.getStarttime());
         vehicleVO.setLateststarttime(vehicle.getLateststarttime());
         vehicleVO.setOvertimestar(vehicle.getOvertimestar());
-        vehicleVO.setSkills(vehicle.getSkills());
         vehicleVO.setStartdepotn(vehicle.getStartdepotn());
         vehicleVO.setEnddepotname(vehicle.getEnddepotname());
         vehicleVO.setStartdepots(vehicle.getStartdepots());
@@ -200,10 +195,6 @@ public class AsyncService {
         vehicleVO.setBptnum(vehicle.getBptnum());
         vehicleVO.setXvol(vehicle.getXvol());
         vehicleVO.setXweu(vehicle.getXweu());
-        vehicleVO.setAprodCategDesc(vehicle.getAprodCategDesc());
-        vehicleVO.setAroutecodeDesc(vehicle.getAroutecodeDesc());
-        vehicleVO.setAvehClassListDesc(vehicle.getAvehClassListDesc());
-        vehicleVO.setSkills(vehicle.getSkills());
         vehicleVO.setMaxspeed(vehicle.getMaxspeed());
         vehicleVO.setXmaxtotaldis(vehicle.getXmaxtotaldis());
         vehicleVO.setMaxtotaldist(vehicle.getMaxtotaldist());
@@ -220,9 +211,6 @@ public class AsyncService {
         vehicleVO.setLength(stackHeightConv(vehicle.getLength()));
         vehicleVO.setHeigth(stackHeightConv(vehicle.getHeigth()));
         vehicleVO.setWidth(stackHeightConv(vehicle.getWidth()));
-        vehicleVO.setDriverAllocated(vehicle.getDriverAllocated());
-        vehicleVO.setDristartdate(vehicle.getDristartdate());
-        vehicleVO.setDrienddate(vehicle.getDrienddate());
         return vehicleVO;
     }
 
@@ -333,7 +321,7 @@ public class AsyncService {
         if(time > 23) {
 
         }else {
-            for(int i = 0; i < 9; i ++) {
+            for(int i = 0; i < 15; i ++) {
                 TimeVO timeVO = new TimeVO();
                 timeVO.setValue(String.valueOf(i * 10));
                 timeVO.setLabel(String.format("%s:%s", time + i, "00"));
@@ -409,7 +397,6 @@ public class AsyncService {
         trailVO.setDes(trail.getDes());
         trailVO.setFcy(trail.getFcy());
         trailVO.setColor(trail.getColor());
-		trailVO.setIsStockExist(trail.getIsStockExist());
         trailVO.setTclcod(trail.getTclcod());
         trailVO.setAllproducts(trail.getAllproducts());
         trailVO.setModel(trail.getModel());
@@ -438,13 +425,13 @@ public class AsyncService {
             }
         }
         if(!CollectionUtils.isEmpty(driverList)) {
-            driverVOList = driverList.parallelStream().map(a-> this.convert(a, driverSList, selDate))
+            driverVOList = driverList.parallelStream().map(a-> this.convert(a, driverSList))
                     .collect(Collectors.toList());
         }
         return CompletableFuture.completedFuture(driverVOList);
     }
 
-    private DriverVO convert(Driver driver, List<String> driverList, Date dddate) {
+    private DriverVO convert(Driver driver, List<String> driverList) {
         DriverVO driverVO = new DriverVO();
         driverVO.setDriverid(driver.getDriverid());
 //        if(driverList.contains(driver.getDriver())) {
@@ -453,6 +440,7 @@ public class AsyncService {
         driverVO.setType(TransportConstants.OPEN);
         driverVO.setDriver(driver.getDriver());
         driverVO.setLicenum(driver.getLicenum());
+        driverVO.setBptnum(driver.getBptnum());
         driverVO.setLicedat(driver.getLicedat());
         driverVO.setCty(driver.getCty());
         driverVO.setFcy(driver.getFcy());
@@ -461,121 +449,7 @@ public class AsyncService {
         driverVO.setCry(driver.getCry());
         driverVO.setLncstrtime(driver.getLncstrtime());
         driverVO.setLncduration(driver.getLncduration());
-
-        LocalDate tempdate =  convertDateToLocalDate(dddate);
-        Map<String, LocalDateTime> weekRange = getWeekRange(tempdate);
-        Map<String, LocalDateTime> MonthRange = getMonthRange(tempdate);
-
-        Date wsdate = convertLocalDateTimeToDate(weekRange.get("startDate"));
-        Date wedate = convertLocalDateTimeToDate(weekRange.get("endDate"));
-        Date msdate =  convertLocalDateTimeToDate(MonthRange.get("startDate"));
-        Date medate =  convertLocalDateTimeToDate(MonthRange.get("endDate"));
-
-     List<DriverSchedule> WeeklydriverActivity =    driverProRepository.findByDriverLogswithDateRange(driver.getDriverid(),wsdate, wedate);
-
-        List<DriverSchedule> MonthlydriverActivity =    driverProRepository.findByDriverLogswithDateRange(driver.getDriverid(),msdate, medate);
-        List<DriverSchedule> SelectedDatedriverActivity =    driverProRepository.findByDriverLogswithDateRange(driver.getDriverid(),dddate, dddate);
-
-
-        Long selectedWorkedMins = calculateWorkedMinutes(SelectedDatedriverActivity);
-        Long selectedShiftMins = convertToMinutes(driver.getDriverDayShiftHrs());
-
-        Long weeklyWorkedMins = calculateWorkedMinutes(WeeklydriverActivity);
-        Long weeklyShiftMins = convertToMinutes(driver.getDriverWeekShiftHrs());
-
-        Long monthlyWorkedMins = calculateWorkedMinutes(MonthlydriverActivity);
-        Long monthlyShiftMins = calculateWorkedMinutes_fixed(convertDateToLocalDate(msdate) , convertDateToLocalDate(medate));
-
-      driverVO.setMonthRemHrs(monthlyShiftMins - monthlyWorkedMins);
-      driverVO.setWeeklRemHrs(weeklyShiftMins - weeklyWorkedMins);
-      driverVO.setMonthCycleHrs(monthlyShiftMins);
-      driverVO.setWeekCycleHrs(weeklyShiftMins);
-      driverVO.setScheduledHrs(selectedShiftMins - selectedWorkedMins);
-      driverVO.setShiftHrs(selectedShiftMins);
-      driverVO.setMonthWorkedHrs(monthlyWorkedMins);
-      driverVO.setWeeklyWorkedHrs(weeklyWorkedMins);
-      driverVO.setDayWorkedHrs(selectedWorkedMins);
-
         return driverVO;
-    }
-
-    public static long convertToMinutes(String time) {
-        long hours, minutes;
-
-        if (time.contains(":")) {
-            // HH:MM format
-            String[] parts = time.split(":");
-            hours = Long.parseLong(parts[0]);
-            minutes = Long.parseLong(parts[1]);
-        } else {
-            // HHMM format
-            if (time.length() != 4) {
-                throw new IllegalArgumentException("Invalid HHMM time format");
-            }
-            hours = Long.parseLong(time.substring(0, 2));
-            minutes = Long.parseLong(time.substring(2, 4));
-        }
-
-        return hours * 60 + minutes;
-    }
-
-    private Long calculateWorkedMinutes_fixed(LocalDate startDate, LocalDate endDate) {
-
-        long daysBetween = ChronoUnit.DAYS.between(startDate,endDate) + 1;
-        return daysBetween * 480L;
-    }
-
-    private Long calculateWorkedMinutes(List<DriverSchedule> schedules) {
-        if (schedules == null || schedules.isEmpty()) {
-            return 0L;
-        }
-        return schedules.stream()
-                .mapToLong(DriverSchedule::getWorked_mints)
-                .sum();
-    }
-
-    private Long calculateShiftMinutes(List<DriverSchedule> schedules) {
-        if (schedules == null || schedules.isEmpty()) {
-            return 0L;
-        }
-        return schedules.stream()
-                .mapToLong(DriverSchedule::getShiftMints)
-                .sum();
-    }
-
-    public static LocalDate convertDateToLocalDate(Date date) {
-        return date.toInstant()
-                .atZone(ZoneId.systemDefault())
-                .toLocalDate();
-    }
-
-    public static Date convertLocalDateTimeToDate(LocalDateTime localDateTime) {
-        return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
-    }
-
-
-    public static Map<String, LocalDateTime> getWeekRange(LocalDate date) {
-        Map<String, LocalDateTime> result = new HashMap<>();
-
-        LocalDate startDate = date.with(DayOfWeek.MONDAY);
-        LocalDate endDate = date.with(DayOfWeek.SUNDAY);
-
-        result.put("startDate", startDate.atStartOfDay());
-        result.put("endDate", endDate.atTime(LocalTime.MAX));
-
-        return result;
-    }
-
-    public static Map<String, LocalDateTime> getMonthRange(LocalDate date) {
-        Map<String, LocalDateTime> result = new HashMap<>();
-
-        LocalDate startDate = date.withDayOfMonth(1);
-        LocalDate endDate = date.withDayOfMonth(date.lengthOfMonth());
-
-        result.put("startDate", startDate.atStartOfDay());
-        result.put("endDate", endDate.atTime(LocalTime.MAX));
-
-        return result;
     }
 
     @Async
@@ -638,17 +512,17 @@ public class AsyncService {
             dropsVO.setRouteColor(";font-style:normal;background-color:#92a8d1");
         }
         dropsVO.setRouteTagFRA(this.convertToString(drops.get("ROUTETAGFRA")));
-        dropsVO.setFromTime(this.convertToString(drops.get("FROMTIME")));
+        dropsVO.setDlvystatus(this.convertToString(drops.get("DLVYSTATUS")));
 
-        dropsVO.setPriority(this.convertToString(drops.get("PRIORITY")));
-        dropsVO.setSkills(this.convertToString(drops.get("SKILLSET")));
         dropsVO.setAprodCategDesc(this.convertToString(drops.get("APRODCATEGDESC")));
         dropsVO.setAroutecodeDesc(this.convertToString(drops.get("AROUTECOCDESC")));
         dropsVO.setAvehClassListDesc(this.convertToString(drops.get("AVEHCLASSLISTDESC")));
-
-
+        dropsVO.setPriority((Integer) drops.get("PRIORITY"));
+        dropsVO.setSkills(this.convertToString(drops.get("SKILLSET")));
+//        dropsVO.setNoofCases(this.convertToString(drops.get("NOOFCASES")));
+//        dropsVO.setMainCases(this.convertToString(drops.get("ACTCASES")));
+        dropsVO.setFromTime(this.convertToString(drops.get("FROMTIME")));
         dropsVO.setToTime(this.convertToString(drops.get("TOTIME")));
-        dropsVO.setDlvystatus(this.convertToString(drops.get("DLVYSTATUS")));
         dropsVO.setPtlink(this.convertToString(drops.get("PTLINK")));
         dropsVO.setPtheader(this.convertToString(drops.get("PTHEADER")));
         dropsVO.setMovtype(this.convertToString(drops.get("MOVTYPE")));
@@ -670,6 +544,7 @@ public class AsyncService {
         dropsVO.setCarrier(this.convertToString(drops.get("CARRIER")));
         dropsVO.setDrivercode(this.convertToString(drops.get("DRIVERCODE")));
         dropsVO.setCity(this.convertToString(drops.get("CITY")));
+
         dropsVO.setNetweight(this.convertToBigDecimal(drops.get("NETWEIGHT")));
         dropsVO.setWeightunit(this.convertToString(drops.get("WEIGHTUNIT")));
         dropsVO.setVolume(this.convertToBigDecimal(drops.get("VOLUME")));
@@ -682,11 +557,18 @@ public class AsyncService {
         dropsVO.setPairedDoc(this.convertToString(drops.get("PAIREDDOCUMENT")));
         dropsVO.setServiceTime(this.convertToString(drops.get("SERVICETIME")));
         dropsVO.setWaitingTime(this.convertToString(drops.get("WaitingTime")));
+        dropsVO.setLoadBay(this.convertToString(drops.get("loadBay")));
+        dropsVO.setTailGate(this.convertToString(drops.get("tailGate")));
         dropsVO.setVehType(this.convertToString(drops.get("vehType")));
         dropsVO.setBPServiceTime(this.convertToString(drops.get("BPServiceTime")));
+        dropsVO.setStackHeight(this.convertToString(drops.get("StackHeight")));
+        dropsVO.setTimings(this.convertToString(drops.get("Timings")));
+        dropsVO.setPacking(this.PackingConv((Short)drops.get("Packing")));
+        dropsVO.setHeight(this.HeightConv((Short)drops.get("Height")));
+        dropsVO.setLoadingOrder(this.LoadingOrderConv((Short)drops.get("LoadingOrder")));
 
       //  dropsVO.setLogisticDetails(this.convertToString(drops.get("Speciality")));
-        dropsVO.setLogisticDetails("");
+        dropsVO.setLogisticDetails(this.constructDropSpeciality(this.convertToString(drops.get("loadBay")),this.convertToString(drops.get("tailGate")),this.DecimaltoString((BigDecimal)drops.get("BPServiceTime")),this.DecimaltoString((BigDecimal) drops.get("WaitingTime")), this.stackHeightConv((BigDecimal) drops.get("StackHeight")),this.convertToString(drops.get("vehType")),this.convertToString(drops.get("Timings")),this.PackingConv((Short)drops.get("Packing")),this.HeightConv((Short) drops.get("Height")),this.LoadingOrderConv((Short)drops.get("LoadingOrder"))));
        // dropsVO.setBPServiceTime(this.convertToString(drops.get("BPServiceTime")));
         if(Objects.isNull(dropsVO.getProducts())) {
             List<ProductVO> productVOS = new ArrayList<>();
@@ -897,24 +779,28 @@ public class AsyncService {
             dropsVO.setRouteColor(";font-style:normal;background-color:#92a8d1");
         }
         dropsVO.setRouteTagFRA(this.convertToString(drops.get("ROUTETAGFRA")));
+        dropsVO.setVehClassList(this.convertToString(drops.get("VEHCLASSLIST")));
         dropsVO.setFromTime(this.convertToString(drops.get("FROMTIME")));
         dropsVO.setToTime(this.convertToString(drops.get("TOTIME")));
-        dropsVO.setPriority(this.convertToString(drops.get("PRIORITY")));
-        dropsVO.setSkills(this.convertToString(drops.get("SKILLSET")));
+//        dropsVO.setNoofCases(this.convertToString(drops.get("NOOFCASES")));
+//        dropsVO.setMainCases(this.convertToString(drops.get("ACTCASES")));
         dropsVO.setAprodCategDesc(this.convertToString(drops.get("APRODCATEGDESC")));
         dropsVO.setAroutecodeDesc(this.convertToString(drops.get("AROUTECOCDESC")));
         dropsVO.setAvehClassListDesc(this.convertToString(drops.get("AVEHCLASSLISTDESC")));
 
+        dropsVO.setPriority((Integer) drops.get("PRIORITY"));
+        dropsVO.setSkills(this.convertToString(drops.get("SKILLSET")));
 
         dropsVO.setDlvystatus(this.convertToString(drops.get("DLVYSTATUS")));
         dropsVO.setPrelistCode(this.convertToString(drops.get("PRELISTCODE")));
+        dropsVO.setStatus(this.convertToString(drops.get("STATUS")));
         dropsVO.setPtlink(this.convertToString(drops.get("PTLINK")));
         dropsVO.setPtheader(this.convertToString(drops.get("PTHEADER")));
-        dropsVO.setPoscode(this.convertToString(drops.get("POSCODE")));
-        dropsVO.setCity(this.convertToString(drops.get("CITY")));
 		dropsVO.setRouteCode(this.convertToString(drops.get("ROUTECODE")));
         dropsVO.setRouteBgColor(this.convertToString(drops.get("ROUTECODEBGCLR")));
         dropsVO.setRouteCodeDesc(this.convertToString(drops.get("ROUTECODEDESC")));
+        dropsVO.setPoscode(this.convertToString(drops.get("POSCODE")));
+        dropsVO.setCity(this.convertToString(drops.get("CITY")));
         dropsVO.setTrailer(this.convertToString(drops.get("TRAILER")));
         dropsVO.setCarrier(this.convertToString(drops.get("CARRIER")));
         dropsVO.setDrivercode(this.convertToString(drops.get("DRIVERCODE")));
@@ -936,13 +822,21 @@ public class AsyncService {
         dropsVO.setLat(this.convertDouble(drops.get("GPS_Y")));
         dropsVO.setVehicleCode(dropsVehicleMap.get(dropsVO.getDocnum()));
         dropsVO.setTripno(this.convertToString(drops.get("TRIPNO")));
+        dropsVO.setDlvflg(this.convertToString(drops.get("DLVFLG")));
         dropsVO.setPairedDoc(this.convertToString(drops.get("PAIREDDOC")));
         dropsVO.setServiceTime(this.convertToString(drops.get("SERVICETIME")));
         dropsVO.setWaitingTime(this.convertToString(drops.get("WaitingTime")));
+        dropsVO.setLoadBay(this.convertToString(drops.get("loadBay")));
+        dropsVO.setTailGate(this.convertToString(drops.get("tailGate")));
+        dropsVO.setVehType(this.convertToString(drops.get("vehType")));
         dropsVO.setBPServiceTime(this.convertToString(drops.get("BPServiceTime")));
+        dropsVO.setStackHeight(this.convertToString(drops.get("StackHeight")));
+        dropsVO.setTimings(this.convertToString(drops.get("Timings")));
+        dropsVO.setPacking(this.PackingConv((Short)drops.get("Packing")));
+        dropsVO.setHeight(this.HeightConv((Short)drops.get("Height")));
+        dropsVO.setLoadingOrder(this.LoadingOrderConv((Short)drops.get("LoadingOrder")));
 
-        dropsVO.setLogisticDetails("");
-        //dropsVO.setLogisticDetails(this.constructDropSpeciality(this.convertToString(drops.get("loadBay")),this.convertToString(drops.get("tailGate")),this.DecimaltoString((BigDecimal)drops.get("BPServiceTime")),this.DecimaltoString((BigDecimal) drops.get("WaitingTime"));
+        dropsVO.setLogisticDetails(this.constructDropSpeciality(this.convertToString(drops.get("loadBay")),this.convertToString(drops.get("tailGate")),this.DecimaltoString((BigDecimal)drops.get("BPServiceTime")),this.DecimaltoString((BigDecimal) drops.get("WaitingTime")), this.stackHeightConv((BigDecimal) drops.get("StackHeight")),this.convertToString(drops.get("vehType")),this.convertToString(drops.get("Timings")),this.PackingConv((Short)drops.get("Packing")),this.HeightConv((Short) drops.get("Height")),this.LoadingOrderConv((Short)drops.get("LoadingOrder"))));
         //dropsVO.setBPServiceTime(this.convertToString(drops.get("BPServiceTime")));
         if(Objects.isNull(dropsVO.getProducts())) {
             List<ProductVO> productVOS = new ArrayList<>();
@@ -960,23 +854,25 @@ public class AsyncService {
         productVO.setProductName(this.convertToString(map.get("PRODUCTNAME")));
         productVO.setProductCateg(this.convertToString(map.get("PRODUCTCATEG")));
         productVO.setQuantity(this.convertToString(map.get("QUANTITY")));
-        productVO.setConvQty(this.convertToString(map.get("CONV_QTY")));
-        productVO.setWeight(this.convertToString(map.get("WEIGHT")));
-        productVO.setVolume(this.convertToString(map.get("VOLUME")));
-        productVO.setWei_unit(this.convertToString(map.get("WEI_UNIT")));
-        productVO.setVol_unit(this.convertToString(map.get("VOL_UNIT")));
-        productVO.setPuu(this.convertToString(map.get("PURUNIT")));
-
+        log.info(this.convertToString(map.get("QUANTITY")));
         if(null != productVO.getQuantity() && productVO.getQuantity().length() > 4) {
             String quant = productVO.getQuantity().substring(0, productVO.getQuantity().indexOf("."));
             productVO.setQuantity(quant);
+        }else {
+            productVO.setQuantity("0");
         }
+
         productVO.setUom(this.convertToString(map.get("UOM")));
+        productVO.setWeight(this.convertToString(map.get("WEIGHT")));
+        productVO.setWeu(this.convertToString(map.get("WEU")));
+        productVO.setVolume(this.convertToString(map.get("VOLUME")));
+        productVO.setVou(this.convertToString(map.get("VOU")));
         return productVO;
     }
 
     private String convertToString(Object value) {
-        if(Objects.nonNull(value)) return value.toString();
+        if(Objects.nonNull(value) && !StringUtils.startsWithIgnoreCase(value.toString(),"0E"))
+            return value.toString();
         return null;
     }
 
@@ -1011,10 +907,25 @@ public class AsyncService {
         return null;
     }
 
+
     private Double convertDouble(Object value) {
-        if(Objects.nonNull(value)) return Double.parseDouble(value.toString());
-        return 0.0;
+        if (value == null || value.toString().trim().isEmpty()) {
+            return 0.0; // or return null if appropriate
+        }
+        try {
+            return Double.parseDouble(value.toString());
+        } catch (NumberFormatException e) {
+            System.err.println("Invalid number format: " + value);
+            return 0.0; // or handle it appropriately
+        }
     }
+
+//    private Double convertDouble(Object value) {
+//        if(!StringUtils.isEmpty(value))
+//            return Double.parseDouble(value.toString());
+//        else
+//        return 0.0;
+//    }
 
     private BigDecimal convertToBigDecimal(Object value) {
         if(Objects.nonNull(value)) return (BigDecimal) value;
@@ -1029,10 +940,13 @@ public class AsyncService {
         dropsVO.setToTime(drops.getToTime());
         dropsVO.setRouteTag(drops.getRouteTag());
         dropsVO.setRouteColor(drops.getRouteColor());
+//        dropsVO.setNoofCases(drops.getNoofCases());
+//        dropsVO.setMainCases(drops.getMainCases());
+		 dropsVO.setDlvflg(drops.getDlvflg());
         dropsVO.setRouteTagFRA(drops.getRouteTagFRA());
-		   dropsVO.setRouteCode(drops.getRouteCode());
+		 dropsVO.setRouteCode(drops.getRouteCode());
         dropsVO.setRouteBgColor(drops.getRouteBgColor());
-		dropsVO.setRouteCodeDesc(drops.getRouteCodeDesc());
+        dropsVO.setRouteCodeDesc(drops.getRouteCodeDesc());
         dropsVO.setPoscode(drops.getPoscode());
         dropsVO.setPrelistCode(drops.getPrelistCode());
         dropsVO.setCity(drops.getCity());

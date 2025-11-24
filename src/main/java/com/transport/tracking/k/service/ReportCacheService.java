@@ -316,7 +316,7 @@ public class ReportCacheService {
             e.printStackTrace();
         }
 
-      log.info("before docs");
+
         try {
             int sequenceNUm = 2;
             if (null != tripVO.getTotalObject()) {
@@ -369,6 +369,10 @@ public class ReportCacheService {
                         String docline = null != prodmap.get("docLineNum") ? prodmap.get("docLineNum").toString() : "";
                         String Qty = null != prodmap.get("quantity") ? prodmap.get("quantity").toString() : "";
                         String uom = null != prodmap.get("uom") ? prodmap.get("uom").toString() : "";
+                        String weight = null != prodmap.get("weight") ? prodmap.get("weight").toString() : "";
+                        String weu = null != prodmap.get("weu") ? prodmap.get("weu").toString() : "";
+                        String volume = null != prodmap.get("volume") ? prodmap.get("volume").toString() : "";
+                        String vou = null != prodmap.get("vou") ? prodmap.get("vou").toString() : "";
 
 
                         ProductVO prod = new ProductVO();
@@ -378,6 +382,10 @@ public class ReportCacheService {
                         prod.setDocLineNum(docline);
                         prod.setQuantity(Qty);
                         prod.setUom(uom);
+                        prod.setWeight(weight);
+                        prod.setWeu(weu);
+                        prod.setVolume(volume);
+                        prod.setVou(vou);
 
 
                         prodList.add(prod);
@@ -393,7 +401,7 @@ public class ReportCacheService {
                     }
 
 
-                     log.info(docnum);
+                    //  log.info(docnum);
 // getdocument status
                     if(docType.equalsIgnoreCase("PRECEIPT")) {
                         PickUP pickup = pickupRepository.findByDocnum(docnum);
@@ -414,7 +422,7 @@ public class ReportCacheService {
                         docstatus = drop.getDlvystatus();
 
                     }
-                     log.info(docstatus);
+                    // log.info(docstatus);
 
 
                     //allocate each document to Timelinedata
@@ -542,12 +550,8 @@ public class ReportCacheService {
 
     private String getonlycolor(String color){
         String result = "";
-        if(color!=null && color.contains("background-color")){
-            int len = color.length();
-            result = color.substring(len-7,len).isEmpty()?"#92a8d1":color.substring(len-7,len);
-        }else{
-            result = "#92a8d1";
-        }
+        int len = color.length();
+        result = color.substring(len-7,len);
         return result;
     }
 

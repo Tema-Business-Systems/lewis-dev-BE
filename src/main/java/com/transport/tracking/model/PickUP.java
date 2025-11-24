@@ -30,10 +30,6 @@ public class PickUP {
       private String docnum;
       @Column(name= "ADRESCODE")
       private String adrescode;
-      @Column(name= "FROMTIME")
-      private String fromTime;
-      @Column(name= "TOTIME")
-      private String toTime;
       @Column(name= "ADRESNAME")
       private String adresname;
       @Column(name= "PTLINK")
@@ -54,6 +50,10 @@ public class PickUP {
       private String doctype;
       @Column(name= "MOVTYPE")
       private String movtype;
+      @Column(name= "FROMTIME")
+      private String fromTime;
+      @Column(name= "TOTIME")
+      private String toTime;
       @Column(name= "BPCODE")
       private String bpcode;
       @Column(name= "CPYCODE")
@@ -140,14 +140,16 @@ public class PickUP {
       private String Height;
       @Column(name= "LoadingOrder")
       private String LoadingOrder;
-      @Column(name= "PRIORITY")
-      private String priority;
-      @Column(name= "SKILLSET")
-      private String skills;
       @Column(name= "AROUTECOCDESC")
       private String aroutecodeDesc;
       @Column(name= "APRODCATEGDESC")
       private String aprodCategDesc;
       @Column(name= "AVEHCLASSLISTDESC")
       private String avehClassListDesc;
+      @Column(name= "PRIORITY")
+      private int priority;
+      @Column(name= "SKILLSET")
+      private String skills;
+      @Column(name= "NOOFCASES")
+      private String noofCases;
 }

@@ -1,13 +1,10 @@
 package com.transport.tracking.repository;
 
-import com.transport.tracking.model.DocReportTrack;
 import com.transport.tracking.model.VehLiveTrack;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import javax.xml.crypto.Data;
-import java.util.Date;
 import java.util.List;
 
 @Repository

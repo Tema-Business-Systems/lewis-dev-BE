@@ -19,22 +19,17 @@ public class DocsVO {
 
       private String site;
       private String trailer;
-      private String aroutecodeDesc;
-      private String aprodCategDesc;
-      private String avehClassListDesc;
-      private String priority;
-      private String skills;
+      private String dlvflg;
 	   private String allDrivers;
       private String prelistCode;
       private String allVehClass;
       private String driverList;
       private String vehClassList;
       private String priorityOrder;
-
       private String fromTime;
       private String toTime;
       private String availDays;
-      private String groupingColor;
+     
       private String carrier;
       private String docnum;
       private String routeColor;
@@ -50,6 +45,7 @@ public class DocsVO {
       private String carrierColor;
       private String docdate;
       private String dlvystatus;
+      private String status;
       private String doctype;
       private String movtype;
       private String docinst;

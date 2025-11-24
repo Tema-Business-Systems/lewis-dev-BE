@@ -4,8 +4,8 @@ package com.transport.tracking.response;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.persistence.Column;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -17,7 +17,6 @@ public class VehicleVO {
       private String startdepotn;
       private String enddepotname;
       private double startdepots;
-      private String skills;
       private double enddepotserv;
       private BigDecimal capacities;
       private String fcy;
@@ -65,12 +64,13 @@ public class VehicleVO {
       private double heigth;
       private double width;
       private String tclcod;
-	     private String isStockExist;
+      private String routeCode;
+      private String routeCodeDesc;
+      private String skills;
       private String aroutecodeDesc;
       private String aprodCategDesc;
       private String avehClassListDesc;
-      private String driverAllocated;
-      private LocalDateTime dristartdate;
-      private LocalDateTime drienddate;
+      private int maxqty;
+
 
 }

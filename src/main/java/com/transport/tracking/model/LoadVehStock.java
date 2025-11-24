@@ -33,7 +33,4 @@ public class LoadVehStock {
       private Date xxiptdat;
       @Column(name="XVALFLG_0")
       private int xvalflg;
-      @Column(name="XALLFLG_0")
-      private int xstoflg;
-
 }
