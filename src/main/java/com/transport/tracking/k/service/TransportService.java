@@ -236,6 +236,7 @@
                         }
 
                         siteVO.cur = curr;
+                        siteVO.defflg=usrsite.getDefflg();
                         siteVO.distunit = distunit;
                         siteVO.volunit = volunits;
                         siteVO.massunit = massunits;
