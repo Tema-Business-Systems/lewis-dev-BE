@@ -563,12 +563,19 @@ public class AsyncService {
         dropsVO.setBPServiceTime(this.convertToString(drops.get("BPServiceTime")));
         dropsVO.setStackHeight(this.convertToString(drops.get("StackHeight")));
         dropsVO.setTimings(this.convertToString(drops.get("Timings")));
-        dropsVO.setPacking(this.PackingConv((Short)drops.get("Packing")));
-        dropsVO.setHeight(this.HeightConv((Short)drops.get("Height")));
-        dropsVO.setLoadingOrder(this.LoadingOrderConv((Short)drops.get("LoadingOrder")));
+//        dropsVO.setPacking(this.PackingConv((Short)drops.get("Packing")));
+//        dropsVO.setHeight(this.HeightConv((Short)drops.get("Height")));
+//        dropsVO.setLoadingOrder(this.LoadingOrderConv((Short)drops.get("LoadingOrder")));
+        dropsVO.setPacking(this.PackingConv(convertToShort(drops.get("Packing"))));
+        dropsVO.setHeight(this.HeightConv(convertToShort(drops.get("Height"))));
+        dropsVO.setLoadingOrder(this.LoadingOrderConv(convertToShort(drops.get("LoadingOrder"))));
 
-      //  dropsVO.setLogisticDetails(this.convertToString(drops.get("Speciality")));
-        dropsVO.setLogisticDetails(this.constructDropSpeciality(this.convertToString(drops.get("loadBay")),this.convertToString(drops.get("tailGate")),this.DecimaltoString((BigDecimal)drops.get("BPServiceTime")),this.DecimaltoString((BigDecimal) drops.get("WaitingTime")), this.stackHeightConv((BigDecimal) drops.get("StackHeight")),this.convertToString(drops.get("vehType")),this.convertToString(drops.get("Timings")),this.PackingConv((Short)drops.get("Packing")),this.HeightConv((Short) drops.get("Height")),this.LoadingOrderConv((Short)drops.get("LoadingOrder"))));
+
+
+        //  dropsVO.setLogisticDetails(this.convertToString(drops.get("Speciality")));
+        dropsVO.setLogisticDetails(this.constructDropSpeciality(this.convertToString(drops.get("loadBay")),this.convertToString(drops.get("tailGate")),this.DecimaltoString((BigDecimal)drops.get("BPServiceTime")),this.DecimaltoString((BigDecimal) drops.get("WaitingTime")), this.stackHeightConv((BigDecimal) drops.get("StackHeight")),this.convertToString(drops.get("vehType")),this.convertToString(drops.get("Timings")),this.PackingConv(convertToShort(drops.get("Packing"))),
+                this.HeightConv(convertToShort(drops.get("Height"))),
+                this.LoadingOrderConv(convertToShort(drops.get("LoadingOrder")))));
        // dropsVO.setBPServiceTime(this.convertToString(drops.get("BPServiceTime")));
         if(Objects.isNull(dropsVO.getProducts())) {
             List<ProductVO> productVOS = new ArrayList<>();
@@ -577,6 +584,11 @@ public class AsyncService {
         dropsVO.getProducts().add(getProductVO(drops));
         return dropsVO;
     }
+    private Short convertToShort(Object val) {
+        if (val == null) return 0;
+        return ((Number) val).shortValue();
+    }
+
 
     private double  stackHeightConv(BigDecimal wt){
         double xy;

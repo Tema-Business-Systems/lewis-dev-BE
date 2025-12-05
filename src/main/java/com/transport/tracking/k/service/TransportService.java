@@ -1715,39 +1715,26 @@
 
 
         public void updateTrip(TripVO tripVO, List<String> skippedDocs) throws Exception {
-            log.info("inside updateTrip");
-
-            // defensive checks
             if (tripVO == null) {
                 throw new IllegalArgumentException("tripVO cannot be null");
             }
-            // fetch current saved trip (may be null)
             Trip actualTrip = tripRepository.findByTripCode(tripVO.getItemCode());
-
-            // If there is no existing trip, delegate to insertTrip (same behavior as before)
             if (actualTrip == null) {
-                log.info("No existing trip found for itemCode={}, delegating to insertTrip", tripVO.getItemCode());
                 this.insertTrip(tripVO, skippedDocs);
                 return;
             }
-
             if (tripVO.isLockP() == true && tripVO.isLock() == false) {
-                log.info("it is for deletion of VR at x3 updateTrip");
                 this.deleteTrip(actualTrip.getTripCode());
             }
-
-            String oldCode = actualTrip.getCode();                // current saved vehicle
-            String newCode = tripVO.getCode();                    // requested new vehicle in the VO
-            Date newDate = tripVO.getDate();                      // the trip date (we use this for new group)
+            String oldCode = actualTrip.getCode();
+            String newCode = tripVO.getCode();
+            Date newDate = tripVO.getDate();
             boolean vehicleChanged = !Objects.equals(oldCode, newCode);
 
             if (vehicleChanged) {
                 int existingCountForNew = tripRepository.countByCodeAndDocdate(newCode, newDate);
-                // set the trips for this trip to (existing count + 1)
                 tripVO.setTrips(existingCountForNew + 1);
             }
-
-            // --- Build LatestDocList from incoming VO ---
             List<String> LatestDocList = new ArrayList<>();
             Map<String, Object> LtripObj = null;
             List<Map<String, Object>> LtotObj = new ArrayList<>();
@@ -1764,8 +1751,6 @@
                     }
                 }
             }
-
-            // --- Build ActualDocList from saved trip (saved totalObject) ---
             List<String> ActualDocList = new ArrayList<>();
             JSONArray resultArray = new JSONArray();
             try {
@@ -1780,22 +1765,13 @@
                 }
             } catch (Exception ex) {
                 log.warn("Error parsing actualTrip.totalObject selectedTripData: {}", ex.getMessage());
-                // fall through with empty ActualDocList if parsing failed
             }
-
-            // --- Compute removed and added sets ---
             Set<String> latestSet = new HashSet<>(LatestDocList);
             Set<String> actualSet = new HashSet<>(ActualDocList);
-
-            // in Actual but not in Latest -> remove/unassign
             Set<String> removedDocs = new HashSet<>(actualSet);
             removedDocs.removeAll(latestSet);
-
-            // in Latest but not in Actual -> candidate to add (validate)
             Set<String> addedDocs = new HashSet<>(latestSet);
             addedDocs.removeAll(actualSet);
-
-            // Process removed docs: unassign/delete
             for (String docId : removedDocs) {
                 String doctype = null;
                 for (int i = 0; i < resultArray.length(); i++) {
@@ -1805,27 +1781,36 @@
                         break;
                     }
                 }
-                log.info("Removing/unassigning doc {} as it's not present in incoming VO", docId);
                 try {
                     updateDocumentAfterDeleteDocument(docId, doctype);
                 } catch (Exception e) {
                     log.error("Error unassigning doc {}: {}", docId, e.getMessage(), e);
-                    // continue processing other docs; consider adding to skipped with reason if desired
                 }
             }
-
-            // Rebuild selectedTripData list starting from the incoming VO's list (LtotObj).
-            // We'll remove invalid new docs (status != 8 or already has VRCODE) and accumulate skippedDocs.
             List<Map<String, Object>> updatedSelectedTripData = new ArrayList<>();
             if (LtotObj != null) updatedSelectedTripData.addAll(LtotObj);
 
             if (!addedDocs.isEmpty()) {
-                log.info("Validating {} newly added docs", addedDocs.size());
                 for (String docId : addedDocs) {
-                    Map<String, Object> docInfo = getDocumentInfo(docId); // returns {DLVYSTATUS, VRCODE} or null
+                    String doctype = null;
+                    for (Map<String, Object> map : LtotObj) {
+                        if (map != null && docId.equals(String.valueOf(map.get("docnum")))) {
+                            doctype = map.get("doctype") != null ? map.get("doctype").toString() : null;
+                            break;
+                        }
+                    }
+                    Map<String, Object> docInfo;
+                    if (isPickupDocument(doctype)) {
+                        docInfo = getPickupDocumentInfo(docId);
+                    } else {
+                        docInfo = getDocumentInfo(docId);
+                    }
                     if (docInfo == null) {
-                        log.warn("Document info not found for {}, skipping", docId);
-                        skippedDocs.add(docId + " excluded because document not found in XTMSDROP");
+                        if (isPickupDocument(doctype)) {
+                            skippedDocs.add(docId + " excluded because document not found in XTMSPICKUP");
+                        } else {
+                            skippedDocs.add(docId + " excluded because document not found in XTMSDROP");
+                        }
                         updatedSelectedTripData.removeIf(m -> docId.equals(String.valueOf(m.get("docnum"))));
                         continue;
                     }
@@ -1833,63 +1818,42 @@
                     Integer status = (Integer) docInfo.get("DLVYSTATUS");
                     String vrcode = docInfo.get("VRCODE") != null ? docInfo.get("VRCODE").toString() : null;
                     boolean hasVrcode = (vrcode != null && !vrcode.trim().isEmpty());
-
-                    // Case: Already assigned to another trip -> skip
                     if (hasVrcode) {
-                        log.info("Document {} excluded because it is already in another trip={}", docId, vrcode);
                         skippedDocs.add(docId + " excluded because it is already in another trip =" + vrcode);
                         updatedSelectedTripData.removeIf(m -> docId.equals(String.valueOf(m.get("docnum"))));
                         continue;
                     }
-
-                    // Case: status must be 8 to be added
                     if (status == null || status != 8) {
                         log.info("Document {} excluded because status {} != 8", docId, status);
                         skippedDocs.add(docId + " excluded because status " + status + " != 8");
                         updatedSelectedTripData.removeIf(m -> docId.equals(String.valueOf(m.get("docnum"))));
                         continue;
                     }
-
-                    // Document is valid for addition (status == 8 and no VRCODE)
-                    log.info("Document {} has valid status 8 and no existing VRCODE, OK to add", docId);
                 }
             }
-
-            // If there are docs in incoming VO that are not in addedDocs (i.e., already in Actual or unchanged),
-            // they remain in updatedSelectedTripData (because we started from full incoming list).
-            // Ensure we also remove any doc that exists in updatedSelectedTripData but we previously processed as removed (just in case)
             if (!removedDocs.isEmpty()) {
                 for (String docId : removedDocs) {
                     updatedSelectedTripData.removeIf(m -> docId.equals(String.valueOf(m.get("docnum"))));
                 }
             }
-
-            // Now recalculate totals based on the final selectedTripData (same approach as insertTrip)
             List<Map<String, Object>> validDocsForTotals = updatedSelectedTripData != null ? updatedSelectedTripData : new ArrayList<>();
             if (validDocsForTotals.isEmpty()) {
-                // If no docs remain, we may want to delete the trip (same behavior as your original else path).
-                // But we continue and let the existing delete-on-empty branch handle deletion after checking pickups/drops.
                 int incomingCount = (LatestDocList != null) ? LatestDocList.size() : 0;
-
                 if (incomingCount > 0) {
                     int countAlreadyInOtherTrip = 0;
-
-                    // Count how many incoming docs were skipped due to "already in another trip"
                     for (String incomingDoc : LatestDocList) {
                         for (String reason : skippedDocs) {
                             if (reason != null && reason.startsWith(incomingDoc) && reason.contains("already in another trip")) {
                                 countAlreadyInOtherTrip++;
-                                break; // move to next incomingDoc
+                                break;
                             }
                         }
                     }
 
                     if (countAlreadyInOtherTrip == incomingCount) {
                         if (incomingCount == 1) {
-                            // Single doc and it's already in another trip
                             throw new Exception("Please delete the trip. Document already exist in another trip..");
                         } else {
-                            // All incoming docs are already in other trips
                             throw new Exception("Please delete the trip, all the documents are already in another trip");
                         }
                     }
@@ -1900,8 +1864,6 @@
 
             double totalWeight = 0.0;
             double totalVolume = 0.0;
-//            double totalCases = 0.0;
-//            int totmainCases = 0;
             int totalDrops = 0;
             int totalStops = validDocsForTotals.size();
 
@@ -1953,17 +1915,11 @@
                     }
                 }
             } else {
-                // fallback - should not reach here because we handled actualTrip == null at top
                 this.insertTrip(tripVO, skippedDocs);
             }
-
-            // if reorder/route flags require recalculation
             if (tripVO.isReorder() == true || tripVO.isRoute() == false) {
                 getNextTripofsameVeh(tripVO.getCode(), tripVO.getTrips(), tripVO.getDate());
             }
-
-            // Done - skippedDocs list contains entries with reasons for skipped docs
-            log.info("updateTrip completed. skippedDocs={}", skippedDocs);
         }
 
 
@@ -2127,22 +2083,40 @@
             }
         }
 
-        private Integer getDocumentStatus(String docNum) {
+        private Map<String, Object> getPickupDocumentInfo(String docNum) {
             try {
-                String sql = "SELECT DLVYSTATUS FROM " + dbSchema + ".XTMSDROP WHERE DOCNUM = :docNum";
-                Object result = entityManager.createNativeQuery(sql)
+                String sql = "SELECT DLVYSTATUS, VRCODE, DOCTYPE " +
+                        "FROM " + dbSchema + ".XTMSPICKUP " +
+                        "WHERE DOCNUM = :docNum";
+
+                Object[] result = (Object[]) entityManager.createNativeQuery(sql)
                         .setParameter("docNum", docNum)
                         .getSingleResult();
 
-                if (result != null) {
-                    return ((Number) result).intValue();
-                }
+                Map<String, Object> info = new HashMap<>();
+                info.put("DLVYSTATUS", result[0] != null ? ((Number) result[0]).intValue() : null);
+                info.put("VRCODE", result[1] != null ? result[1].toString() : null);
+                info.put("DOCTYPE", result[2] != null ? result[2].toString() : null);
+
+                return info;
+
             } catch (NoResultException e) {
-                // Document not found
+                return null;
+            } catch (Exception e) {
+                log.error("Error fetching pickup document info for {}: {}", docNum, e.getMessage());
                 return null;
             }
-            return null;
         }
+
+        private boolean isPickupDocument(String doctype) {
+            if (doctype == null) return false;
+
+            doctype = doctype.trim().toUpperCase();
+
+            return doctype.equals("PRECEIPT") || doctype.equals("RETURN");
+        }
+
+
 
         private Map<String, Object> getDocumentInfo(String docNum) {
             try {
@@ -2164,13 +2138,6 @@
             }
         }
 
-        /**
-         * Filters documents for a trip based on status in XTMSDROP and existence in other trips.
-         *
-         * @param selectedTripData List of documents from totalObject.selectedTripData
-         * @param skippedDocs List to collect skipped document numbers
-         * @return List of valid documents to be inserted/updated in the trip
-         */
         private List<Map<String, Object>> filterValidTripDocuments(
                 List<Map<String, Object>> selectedTripData, List<String> skippedDocs) throws Exception {
 
@@ -2184,13 +2151,17 @@
                 if (doc == null) continue;
 
                 String docnum = doc.get("docnum") != null ? doc.get("docnum").toString() : null;
+                String doctype = doc.get("doctype") != null ? doc.get("doctype").toString() : null;
                 if (StringUtils.isEmpty(docnum)) {
                     skippedDocs.add("UNKNOWN");
                     continue;
                 }
-
-                // 🟡 Fetch status and VRCODE value
-                Map<String, Object> docInfo = getDocumentInfo(docnum);
+                Map<String, Object> docInfo;
+                if(isPickupDocument(doctype)) {
+                    docInfo=getPickupDocumentInfo(docnum);
+                } else {
+                    docInfo=getDocumentInfo(docnum);
+                }
                 if (docInfo == null) {
                     skippedDocs.add(docnum);
                     continue;
@@ -2199,28 +2170,14 @@
                 Integer status = (Integer) docInfo.get("DLVYSTATUS");
                 String vrcode = (String) docInfo.get("VRCODE");
 
-                log.info("Docnum: {}", docnum);
-                log.info("Status: {}", status);
-                log.info("VRCODE: {}", vrcode);
-
-
-                // 21⃣ Check status from XTMSDROP table
-              //  Integer status = getDocumentStatus(docnum);
-                log.info(docnum);
-                log.info("document - status");
-                log.info(status.toString());
-
                 boolean vrcodeIsBlank = (vrcode == null) || vrcode.trim().isEmpty();
 
                 if (status == null || (status != 0 && status != 8) || !vrcodeIsBlank) {
                     skippedDocs.add(docnum);
                     continue;
                 }
-
-                // ✅ Valid document
                 validDocs.add(doc);
             }
-
             return validDocs;
         }
 
@@ -2265,8 +2222,13 @@
                // totalCases += doc.get("noofCases") != null
                 //        ? (int) Math.round(Double.parseDouble(doc.get("noofCases").toString()))
                  //       : 0;
-                String type = doc.get("doctype") != null ? doc.get("doctype").toString().toLowerCase() : "";
-                if ("drop".equals(type)) totalDrops++;
+//                String type = doc.get("doctype") != null ? doc.get("doctype").toString().toLowerCase() : "";
+//                if ("drop".equals(type)) totalDrops++;
+                String type = doc.get("doctype") != null ? doc.get("doctype").toString() : "";
+
+                if (!isPickupDocument(type)) {
+                    totalDrops++;
+                }
             }
     // Update tripVO totals
 
